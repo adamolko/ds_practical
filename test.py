@@ -64,6 +64,7 @@ series2["t-4"]= lags.iloc[:,3]
 series2["t-5"]= lags.iloc[:,4]
 
 series2 = series2.iloc[5:1730]
+series2 = series2.reset_index(drop=True)
 
 #get variables in correct type
 series2["day_of_week"] = series2["day_of_week"].astype('category')
@@ -110,13 +111,13 @@ rms = mean_squared_error(y["t"], pred_y, squared=False)
 
 
 ##### trying out ruptures 
-algo = rpt.Pelt(model="ar", params={"order": 10}, min_size=5).fit(series2["value"].values[1500:1700])
+algo = rpt.Pelt(model="ar", params={"order": 10}, min_size=5).fit(series2["t"].values)
 my_bkps = algo.predict(pen=10000000)
-fig, (ax,) = rpt.display(series2["value"].values[1500:1700], my_bkps, figsize=(10, 6))
+fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
 plt.show()
 
 algo = rpt.Pelt(model="normal", min_size=5).fit(series2["t"].values)
-my_bkps = algo.predict(pen=100000000)
+my_bkps = algo.predict(pen=1)
 fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
 plt.show()
 
@@ -124,6 +125,66 @@ algo = rpt.Pelt(model="rbf", min_size=10).fit(series2["t"].values)
 my_bkps = algo.predict(pen=3)
 fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
 plt.show()
+
+######################
+#get concept features
+#bkps have indices of breakpoints stored
+list_concepts = []
+count_rows = series2.shape[0] 
+current_concept = 1
+for x in range(1, count_rows+1):
+    if (x in my_bkps): 
+        current_concept+=1
+    list_concepts.append(current_concept)
+############################
+    
+#now try tree again:
+series2["concept"] = list_concepts
+series2["concept"] = series2["concept"].astype("category")
+
+train = series2.iloc[:1715]
+test = series2.iloc[1715:]
+
+clf = tree.DecisionTreeRegressor()
+#get train data in correct form & fit tree
+X = pd.get_dummies(train[['month','day_of_week',"concept"]])
+Temp_X = train.iloc[:,6:11]
+X = pd.concat([X, Temp_X], axis=1, sort=False)
+#print(X.dtypes)
+y = train.iloc[:,1]
+clf = clf.fit(X, y)
+
+#get test data in correct form & predict
+X = pd.get_dummies(test[['month','day_of_week',"concept"]])
+Temp_X = test.iloc[:,6:11]
+X = pd.concat([X, Temp_X], axis=1, sort=False)
+y = test.iloc[:,1]
+y = y.reset_index()
+
+pred_y = pd.DataFrame(clf.predict(X)).rename(columns={0: "pred_y"})
+#result = pd.concat([y, pred_y], axis=1, sort=False)
+rms_with_concepts = mean_squared_error(y["t"], pred_y, squared=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
