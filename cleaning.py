@@ -10,12 +10,11 @@ import numpy as np
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-from statsmodels.tsa.arima_model import ARIMA
+import math
+
 import ruptures as rpt
-from sklearn import tree
-from sklearn.metrics import mean_squared_error
-from math import sqrt
+
+import functions
 
 #load the data, and clean time series values 
 data  = pd.read_csv("data.csv", sep=";")
@@ -26,6 +25,12 @@ data["time_series_1"] = data["time_series_1"].str.replace(",", ".")
 data["time_series_2"] = data["time_series_2"].str.replace(",", ".")
 data["time_series_1"] = pd.to_numeric(data["time_series_1"])
 data["time_series_2"] = pd.to_numeric(data["time_series_2"])
+
+
+#according to forecasting paper
+#   Statistical and Machine Learning forecasting methods: Concerns and ways forward
+#we should apply a log or Box-Cox transformation for best forecasting results (both available in python)
+#BUT: we have negative values, so how should we deal with that?
 
 #data['year'], data['month'], data['day'] = data['posting_date'].str[:4], data['posting_date'].str[4:6],  data['posting_date'].str[6:8]
 #data = data.astype({"year": "int", "month": "int", "day": "int"})
@@ -56,14 +61,18 @@ series2 = series2.rename(columns={"time_series_2": "t"})
 
 #lets work with series2 for now
 #get lagged values
-lags = pd.concat([series2["t"].shift(1), series2["t"].shift(2), series2["t"].shift(3), series2["t"].shift(4), series2["t"].shift(5)], axis=1)
+lags = pd.concat([series2["t"].shift(1), series2["t"].shift(2), series2["t"].shift(3),
+                  series2["t"].shift(4), series2["t"].shift(5), series2["t"].shift(6), 
+                  series2["t"].shift(7)], axis=1)
 series2["t-1"]= lags.iloc[:,0]
 series2["t-2"]= lags.iloc[:,1]
 series2["t-3"]= lags.iloc[:,2]
 series2["t-4"]= lags.iloc[:,3]
 series2["t-5"]= lags.iloc[:,4]
+series2["t-6"]= lags.iloc[:,5]
+series2["t-7"]= lags.iloc[:,6]
 
-series2 = series2.iloc[5:1730]
+series2 = series2.iloc[7:1730]
 series2 = series2.reset_index(drop=True)
 
 #get variables in correct type
@@ -73,44 +82,14 @@ print(series2.dtypes)
 
 
 
-
-
-
-#################################################
-#trying out tree
-train = series2.iloc[:1715]
-test = series2.iloc[1715:]
-
-clf = tree.DecisionTreeRegressor()
-
-#get train data in correct form & fit tree
-X = pd.get_dummies(train[['month','day_of_week']])
-Temp_X = train.iloc[:,6:11]
-X = pd.concat([X, Temp_X], axis=1, sort=False)
-#print(X.dtypes)
-y = train.iloc[:,1]
-clf = clf.fit(X, y)
-
-#get test data in correct form & predict
-X = pd.get_dummies(test[['month','day_of_week']])
-Temp_X = test.iloc[:,6:11]
-X = pd.concat([X, Temp_X], axis=1, sort=False)
-y = test.iloc[:,1]
-y = y.reset_index()
-
-pred_y = pd.DataFrame(clf.predict(X)).rename(columns={0: "pred_y"})
-#result = pd.concat([y, pred_y], axis=1, sort=False)
-rms = mean_squared_error(y["t"], pred_y, squared=False)
-##########################################################
+dummies = pd.get_dummies(series2[['month','day_of_week']])
+series2 = pd.concat([series2, dummies], axis=1, sort=False)
 
 
 
 
-
-
-
-
-##### trying out ruptures 
+#############################################################
+# trying out ruptures 
 algo = rpt.Pelt(model="ar", params={"order": 10}, min_size=5).fit(series2["t"].values)
 my_bkps = algo.predict(pen=10000000)
 fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
@@ -126,50 +105,63 @@ my_bkps = algo.predict(pen=3)
 fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
 plt.show()
 
-######################
+###
+# probably the most suitable one should be "Piecewise linear regression" (see 4.1.2. in paper)
+
+#first drop all columns we dont need
+signal = series2.drop(columns=["date", "day", "month", "year", "day_of_week"])
+#signal["intercept"] = 1
+#since we have a regression here, we should probably add an intercept and drop one dummy per category to avoid multicollinearity
+signal = signal.drop(columns=["month_1", "day_of_week_Monday"])
+signal = signal.drop(columns=["t-7","t-6","t-5","t-4","t-3"])
+signal = signal[270:]
+signal = signal.iloc[:,0:3]
+
+signal = signal.to_numpy()
+
+
+
+
+#define algorithm with cost function and execute
+algo = rpt.Pelt(model="linear", min_size=5).fit(signal)
+
+
+
+
+my_bkps = algo.predict(pen=100000)
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
+plt.show()
+#TODO: something weird going on, why do I get breakpoints at the each 305 steps?
+
+#TODO: try out different penalizations, e.g. through:
+# pen_values = np.logspace(0, 3, 10)
+# algo = rpt.Pelt().fit(signal)
+# bkps_list = [algo.predict(pen=pen) for pen in pen_values]
+#
+
+
+
+
+
+################################################################
+
 #get concept features
 #bkps have indices of breakpoints stored
-list_concepts = []
-count_rows = series2.shape[0] 
-current_concept = 1
-for x in range(1, count_rows+1):
-    if (x in my_bkps): 
-        current_concept+=1
-    list_concepts.append(current_concept)
-############################
-    
-#now try tree again:
-series2["concept"] = list_concepts
-series2["concept"] = series2["concept"].astype("category")
+#call own designed function for that
+series2 = functions.transform_bkps_to_features(my_bkps, series2)
 
-train = series2.iloc[:1715]
-test = series2.iloc[1715:]
 
-clf = tree.DecisionTreeRegressor()
-#get train data in correct form & fit tree
-X = pd.get_dummies(train[['month','day_of_week',"concept"]])
-Temp_X = train.iloc[:,6:11]
-X = pd.concat([X, Temp_X], axis=1, sort=False)
-#print(X.dtypes)
-y = train.iloc[:,1]
-clf = clf.fit(X, y)
-
-#get test data in correct form & predict
-X = pd.get_dummies(test[['month','day_of_week',"concept"]])
-Temp_X = test.iloc[:,6:11]
-X = pd.concat([X, Temp_X], axis=1, sort=False)
-y = test.iloc[:,1]
-y = y.reset_index()
-
-pred_y = pd.DataFrame(clf.predict(X)).rename(columns={0: "pred_y"})
-#result = pd.concat([y, pred_y], axis=1, sort=False)
-rms_with_concepts = mean_squared_error(y["t"], pred_y, squared=False)
+dummies_concept = pd.get_dummies(series2[['concept']])
+series2 = pd.concat([series2, dummies_concept], axis=1, sort=False)
+series2.to_pickle('series2.pkl')    
+print(series2.columns.values)
 
 
 
-
-
-
+#save dataframe for models later
+#remove some of the attributes that are not needed
+series2_cleaned = series2.drop(columns=["date", "day", "month", "year", "day_of_week"])
+series2_cleaned.to_pickle('series2_cleaned.pkl')    
 
 
 
@@ -213,11 +205,3 @@ plt.plot(series2)
 
 
 
-#ARIMA/ARMA STUFF
-plot_acf(series2["time_series_2"]) 
-train_model = ARIMA(series2["time_series_2"], order=(2, 0, 2))
-fit_model = train_model.fit()
-print(fit_model.summary())
-
-fit_model.plot_predict(dynamic=False)
-plt.show()
