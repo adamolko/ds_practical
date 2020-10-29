@@ -11,7 +11,8 @@ def transform_bkps_to_features(bkps, timeseries):
     count_rows = timeseries.shape[0] 
     current_concept = 1
   
-    for x in range(1, count_rows+1):
+   # for x in range(1, count_rows+1):
+    for x in range(0, count_rows):
         if (x in bkps): 
             current_concept+=1
         list_concepts.append(current_concept)

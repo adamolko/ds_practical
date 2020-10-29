@@ -10,14 +10,13 @@ import numpy as np
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-import math
 
 import ruptures as rpt
 
 import functions
 
 #load the data, and clean time series values 
-data  = pd.read_csv("data.csv", sep=";")
+data  = pd.read_csv("data/data.csv", sep=";")
 print(data.dtypes)
 data.columns = data.columns.str.lower()
 
@@ -58,6 +57,8 @@ series2["day"], series2["month"],series2["year"] = series2["date"].dt.day, serie
 series2["day_of_week"] = series2["date"].dt.day_name()
 series2 = series2.rename(columns={"time_series_2": "t"})
 
+series_months = series2.groupby(by=["year", "month"],  as_index=False).agg({"t": "sum"})
+
 
 #lets work with series2 for now
 #get lagged values
@@ -72,20 +73,30 @@ series2["t-5"]= lags.iloc[:,4]
 series2["t-6"]= lags.iloc[:,5]
 series2["t-7"]= lags.iloc[:,6]
 
+lags_months =pd.concat([series_months["t"].shift(1), series_months["t"].shift(2), series_months["t"].shift(3)], axis=1)
+series_months["t-1"]= lags_months.iloc[:,0]
+series_months["t-2"]= lags_months.iloc[:,1]
+
+
 series2 = series2.iloc[7:1730]
 series2 = series2.reset_index(drop=True)
+
+series_months = series_months.iloc[2:]
+series_months = series_months.reset_index(drop=True)
 
 #get variables in correct type
 series2["day_of_week"] = series2["day_of_week"].astype('category')
 series2["month"] = series2["month"].astype('category')
 print(series2.dtypes)
 
-
+series_months["month"] = series_months["month"].astype('category')
+print(series_months.dtypes)
 
 dummies = pd.get_dummies(series2[['month','day_of_week']])
 series2 = pd.concat([series2, dummies], axis=1, sort=False)
 
-
+dummies = pd.get_dummies(series_months[['month']])
+series_months = pd.concat([series_months, dummies], axis=1, sort=False)
 
 
 #############################################################
@@ -99,6 +110,8 @@ algo = rpt.Pelt(model="normal", min_size=5).fit(series2["t"].values)
 my_bkps = algo.predict(pen=1)
 fig, (ax,) = rpt.display(series2["t"].values, my_bkps, figsize=(10, 6))
 plt.show()
+
+
 
 algo = rpt.Pelt(model="rbf", min_size=10).fit(series2["t"].values)
 my_bkps = algo.predict(pen=3)
@@ -119,18 +132,36 @@ signal = signal.iloc[:,0:3]
 
 signal = signal.to_numpy()
 
-
-
-
 #define algorithm with cost function and execute
 algo = rpt.Pelt(model="linear", min_size=5).fit(signal)
-
-
-
-
-my_bkps = algo.predict(pen=100000)
+my_bkps = algo.predict(pen=10)
 fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
+
+#now for months
+signal_month = series_months.drop(columns=["month", "year"])
+signal_month = signal_month[9:54]
+signal_month = signal_month.reset_index(drop=True)
+signal_month = signal_month.iloc[:,0:3]
+#signal_month["intercept"] = 1
+signal_month = signal_month.to_numpy()
+
+algo = rpt.Pelt(model="linear", min_size=2).fit(signal_month)
+my_bkps = algo.predict(pen=0)
+fig, (ax,) = rpt.display(signal_month[:,0], my_bkps, figsize=(10, 6))
+plt.show()
+
+algo = rpt.Pelt(model="ar", params={"order": 5}, min_size=2).fit(signal_month["t"].values)
+my_bkps = algo.predict(pen=10)
+fig, (ax,) = rpt.display(signal_month["t"].values, my_bkps, figsize=(10, 6))
+plt.show()
+
+
+algo = rpt.Pelt(model="rbf", min_size=5, jump=1).fit(signal_month)
+my_bkps = algo.predict(pen=1)
+fig, (ax,) = rpt.display(signal_month[:,0], my_bkps, figsize=(10, 6))
+plt.show()
+
 #TODO: something weird going on, why do I get breakpoints at the each 305 steps?
 
 #TODO: try out different penalizations, e.g. through:
