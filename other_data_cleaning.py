@@ -54,32 +54,32 @@ series["t-4"]= lags.iloc[:,2]
 series["t-5"]= lags.iloc[:,2]
 #series["t-6"]= lags.iloc[:,2]
 series = series[9:]
-
 stand = functions.standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                   'var','kurt','skew']])
 series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                   'var','kurt','skew']] = stand
 
+
 #series = series.iloc[:,0:5]
-series = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew']]
-#series["intercept"] = 1
+series["intercept"] = 1
 series = series.reset_index(drop=True)
 
 
 
+signal = series.loc[:,["t", "t-1", "t-2", "t-3", "t-4", "t-5", "intercept"]]
+signal = signal.to_numpy()
 
-signal = series.to_numpy()
-
-algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(series.to_numpy())
+algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
 my_bkps = algo.predict(pen=1)
 fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
-signal = series.iloc[:,1:]
-algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal.to_numpy())
+signal = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']].to_numpy()
+
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
 my_bkps = algo.predict(pen=3)
-fig, (ax,) = rpt.display(series.iloc[:,0], my_bkps, figsize=(10, 6))
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
 

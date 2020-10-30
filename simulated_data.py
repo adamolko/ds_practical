@@ -10,7 +10,7 @@ from statsmodels.tsa.arima_process import ArmaProcess
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import functions
 import ruptures as rpt
 
 ###########################
@@ -26,27 +26,48 @@ simulated_data1 = AR_object.generate_sample(nsample=1000, scale=0.1)
 plt.plot(simulated_data1)
 
 simulated_data1 = pd.DataFrame(simulated_data1).rename(columns={0: "t"})
+simulated_data1 = functions.compute_autocorrelations_in_window(10, simulated_data1)
+simulated_data1 = functions.compute_partial_autocorrelations_in_window(10, simulated_data1)
+simulated_data1 = functions.compute_features_in_window(10, simulated_data1)
+
+
+
 lags = pd.concat([simulated_data1["t"].shift(1), simulated_data1["t"].shift(2), 
                   simulated_data1["t"].shift(3),simulated_data1["t"].shift(4)], axis=1)
 simulated_data1["t-1"]= lags.iloc[:,0]
-#simulated_data1["t-2"]= lags.iloc[:,1]
-#simulated_data1["t-3"]= lags.iloc[:,2]
-#simulated_data1["t-4"]= lags.iloc[:,3]
-
-simulated_data1 = simulated_data1[4:]
-
-simulated_data1 = simulated_data1.to_numpy()
-
-algo = rpt.Pelt(model="rbf", min_size=5, jump=1).fit(simulated_data1)
-my_bkps = algo.predict(pen=3)
-fig, (ax,) = rpt.display(simulated_data1[:,0], my_bkps, figsize=(10, 6))
-plt.show()
+simulated_data1["t-2"]= lags.iloc[:,1]
+simulated_data1["t-3"]= lags.iloc[:,2]
+simulated_data1["t-4"]= lags.iloc[:,3]
+simulated_data1 = simulated_data1[10:]
+stand = functions.standardize(simulated_data1.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']])
+simulated_data1.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']] = stand
 
 
-algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(simulated_data1)
+#series = series.iloc[:,0:5]
+simulated_data1["intercept"] = 1
+simulated_data1 = simulated_data1.reset_index(drop=True)
+
+
+
+signal = simulated_data1.loc[:,["t", "t-1", "t-2", "t-3", "t-4", "intercept"]]
+signal = signal.to_numpy()
+
+algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
 my_bkps = algo.predict(pen=1)
-fig, (ax,) = rpt.display(simulated_data1[:,0], my_bkps, figsize=(10, 6))
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
+
+signal = simulated_data1.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']].to_numpy()
+
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps = algo.predict(pen=10)
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
+plt.show()
+
+
 
 ###########################
 
@@ -72,28 +93,47 @@ simulated_data_second_half = AR_object.generate_sample(nsample=500, scale=0.1)
 simulated_data2 = np.concatenate((simulated_data_first_half, simulated_data_second_half))
 plt.plot(simulated_data2)
 
+
 simulated_data2 = pd.DataFrame(simulated_data2).rename(columns={0: "t"})
+simulated_data2 = functions.compute_autocorrelations_in_window(10, simulated_data2)
+simulated_data2 = functions.compute_partial_autocorrelations_in_window(10, simulated_data2)
+simulated_data2 = functions.compute_features_in_window(10, simulated_data2)
+
+
+
 lags = pd.concat([simulated_data2["t"].shift(1), simulated_data2["t"].shift(2), 
                   simulated_data2["t"].shift(3),simulated_data2["t"].shift(4)], axis=1)
 simulated_data2["t-1"]= lags.iloc[:,0]
 simulated_data2["t-2"]= lags.iloc[:,1]
 simulated_data2["t-3"]= lags.iloc[:,2]
 simulated_data2["t-4"]= lags.iloc[:,3]
+simulated_data2 = simulated_data2[10:]
+stand = functions.standardize(simulated_data2.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']])
+simulated_data2.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']] = stand
 
 
-simulated_data2 = simulated_data2[4:]
+#series = series.iloc[:,0:5]
+simulated_data2["intercept"] = 1
+simulated_data2 = simulated_data2.reset_index(drop=True)
 
-simulated_data2 = simulated_data2.to_numpy()
 
-algo = rpt.Pelt(model="rbf", min_size=5, jump=1).fit(simulated_data2)
-my_bkps = algo.predict(pen=3)
-fig, (ax,) = rpt.display(simulated_data2[:,0], my_bkps, figsize=(10, 6))
+
+signal = simulated_data2.loc[:,["t", "t-1", "t-2", "t-3", "t-4", "intercept"]]
+signal = signal.to_numpy()
+
+algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
+my_bkps = algo.predict(pen=1)
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
+signal = simulated_data2.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']].to_numpy()
 
-algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(simulated_data2)
-my_bkps = algo.predict(pen=1)
-fig, (ax,) = rpt.display(simulated_data2[:,0], my_bkps, figsize=(10, 6))
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps = algo.predict(pen=10)
+fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
 
