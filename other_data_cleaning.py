@@ -23,6 +23,9 @@ from sklearn.metrics import mean_squared_error
 import functions
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.arima_model import ARIMA
+import statsmodels.tsa.stattools as arma_stats
+from statistics import variance
+from scipy.stats import kurtosis, skew
 
 
 #Get the monthly data from the M3 competition (lots of paper online on that data)
@@ -37,30 +40,46 @@ series = series.dropna()
 
 series["t"] = pd.to_numeric(series["t"])
 
+series = functions.compute_autocorrelations_in_window(10, series)
+series = functions.compute_partial_autocorrelations_in_window(10, series)
+series = functions.compute_features_in_window(10, series)
+
+
+
 lags = pd.concat([series["t"].shift(1), series["t"].shift(2), series["t"].shift(3)], axis=1)
 series["t-1"]= lags.iloc[:,0]
 series["t-2"]= lags.iloc[:,1]
 series["t-3"]= lags.iloc[:,2]
 series["t-4"]= lags.iloc[:,2]
 series["t-5"]= lags.iloc[:,2]
-series["t-6"]= lags.iloc[:,2]
-series = series[6:]
+#series["t-6"]= lags.iloc[:,2]
+series = series[9:]
 
-series = series.iloc[:,0:5]
+stand = functions.standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']])
+series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']] = stand
+
+#series = series.iloc[:,0:5]
+series = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew']]
 #series["intercept"] = 1
 series = series.reset_index(drop=True)
+
+
 
 
 signal = series.to_numpy()
 
 algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(series.to_numpy())
-my_bkps = algo.predict(pen=10000000000000)
+my_bkps = algo.predict(pen=1)
 fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
-algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(series.to_numpy())
+signal = series.iloc[:,1:]
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal.to_numpy())
 my_bkps = algo.predict(pen=3)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
+fig, (ax,) = rpt.display(series.iloc[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
 
@@ -156,16 +175,30 @@ graph.render(directory= "results", filename="with_concepts", format="png")
 
 
 
-
-
-
-
-
-
 plot_acf(series["t"]) 
-train_model = ARIMA(series["t"], order=(10, 0, 0))
+train_model = ARIMA(series["t"], order=(5, 0, 0))
 fit_model = train_model.fit()
 print(fit_model.summary())
 # 
 # fit_model.plot_predict(dynamic=False)
 # plt.show()
+
+
+
+
+
+
+
+
+
+
+
+timeseries = series   
+
+
+
+
+
+
+
+
