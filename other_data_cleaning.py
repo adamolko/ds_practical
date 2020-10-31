@@ -66,8 +66,6 @@ series["t-5"]= lags.iloc[:,2]
 series = functions.mutual_info(10, series)
 
 
-series = series[50:]
-mutual_info_regression(y = series.loc[:,['t']].values.ravel(), X = series.loc[:,['t-1','t-2','t-3']])
 
 series = series[10:]
 series = series.reset_index(drop=True)
@@ -81,9 +79,9 @@ mi = mutual_info_regression(y = test, X = series.loc[:,['t-1','t-2','t-3']])
 
 
 stand = functions.standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew','osc']])
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']])
 series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew','osc']] = stand
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
 
 
 #series = series.iloc[:,0:5]
