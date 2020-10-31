@@ -8,7 +8,7 @@ Created on Wed Oct 28 11:41:05 2020
 import statsmodels.tsa.stattools as arma_stats
 from scipy.stats import kurtosis, skew
 from statistics import variance
-
+from sklearn.feature_selection import mutual_info_regression
 
 def transform_bkps_to_features(bkps, timeseries):
     list_concepts = []
@@ -33,34 +33,45 @@ def standardize(df):
         result[feature_name] = (df[feature_name] - df[feature_name].mean()) / df[feature_name].std()
     return result
 
+def mutual_info(windowsize, series):
+    series['mi_lag1'], series['mi_lag2'], series['mi_lag3'] = [0, 0, 0]
+    number_rows = series.shape[0] 
+    starting_point = windowsize
+    for i in range(starting_point, number_rows+1, 1):
+        window = series.iloc[i-windowsize:i].dropna() #drop rows if some lags are missing
+        mi = mutual_info_regression(y = window.loc[:,['t']].values.ravel(), X = window.loc[:,['t-1','t-2','t-3']])
+        print(mi)
+        series.loc[i-1,['mi_lag1','mi_lag2','mi_lag3']] = mi     
+    return series
+
 def autocorrelations_in_window(windowsize, series):
     series['acf0'], series['acf1'], series['acf2'], series['acf3'], series['acf4'], series['acf5'] = [0, 0, 0, 0, 0, 0]
     number_rows = series.shape[0] 
-    for i in range(windowsize, number_rows, 1):
-        window = series.iloc[i-windowsize:i+1]
+    for i in range(windowsize, number_rows+1, 1):
+        window = series.iloc[i-windowsize:i]
         acfs = arma_stats.acf(window["t"], nlags=5)
-        series.loc[i,['acf0','acf1','acf2', 'acf3', 'acf4', 'acf5' ]] = acfs     
+        series.loc[i-1,['acf0','acf1','acf2', 'acf3', 'acf4', 'acf5' ]] = acfs     
     return series
  
 
 def partial_autocorrelations_in_window(windowsize, series):
     series['pacf0'], series['pacf1'], series['pacf2'], series['pacf3'] = [0, 0, 0, 0]
     number_rows = series.shape[0] 
-    for i in range(windowsize, number_rows, 1):
-        window = series.iloc[i-windowsize:i+1]
+    for i in range(windowsize, number_rows+1, 1):
+        window = series.iloc[i-windowsize:i]
         pacfs = arma_stats.pacf(window["t"], nlags=3)
-        series.loc[i,['pacf0','pacf1','pacf2', 'pacf3']] = pacfs
+        series.loc[i-1,['pacf0','pacf1','pacf2', 'pacf3']] = pacfs
     return series
 
 def features_in_window(windowsize, series):
     series['var'], series['kurt'], series['skew'] = [0, 0, 0]
     number_rows = series.shape[0]
-    for i in range(windowsize, number_rows, 1):
-        window = series.iloc[i-windowsize:i+1]
+    for i in range(windowsize, number_rows+1, 1):
+        window = series.iloc[i-windowsize:i]
         kurt = kurtosis(window["t"])
         skewness = skew(window["t"])
         var = variance(window["t"])
-        series.loc[i,['var','kurt','skew']] = var, kurt, skewness
+        series.loc[i-1,['var','kurt','skew']] = var, kurt, skewness
     return series
 
 def turning_points(array):
@@ -94,11 +105,11 @@ def turning_points(array):
 def oscillation_behaviour_in_window(windowsize, series):
     series['osc']= 0
     number_rows = series.shape[0]
-    for i in range(windowsize, number_rows, 1):
-        window = series.iloc[i-windowsize:i+1]
+    for i in range(windowsize, number_rows+1, 1):
+        window = series.iloc[i-windowsize:i]
         points = turning_points(window["t"].values)
         sum_points = sum(len(x) for x in points)
         oscillation = sum_points/windowsize
-        series.loc[i,['osc']] = oscillation
+        series.loc[i-1,['osc']] = oscillation
     return series
 #TODO: some function to find oscillation of time series in window

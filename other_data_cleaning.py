@@ -18,6 +18,7 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 from sklearn import tree
+
 import ruptures as rpt
 from sklearn.metrics import mean_squared_error
 import functions
@@ -26,6 +27,8 @@ from statsmodels.tsa.arima_model import ARIMA
 import statsmodels.tsa.stattools as arma_stats
 from statistics import variance
 from scipy.stats import kurtosis, skew
+from sklearn.feature_selection import mutual_info_regression
+
 
 
 #Get the monthly data from the M3 competition (lots of paper online on that data)
@@ -41,11 +44,16 @@ series = series.reset_index(drop=True)
 
 series["t"] = pd.to_numeric(series["t"])
 
+
+acfs = arma_stats.acf(series.loc[0:9,["t"]], nlags=5)
+
 series = functions.autocorrelations_in_window(10, series)
 series = functions.partial_autocorrelations_in_window(10, series)
 series = functions.features_in_window(10, series)
 series = functions.oscillation_behaviour_in_window(10, series)
 
+
+plt.plot(series["t"])
 #turning_points = functions.turning_points(series["t"].values)
 
 lags = pd.concat([series["t"].shift(1), series["t"].shift(2), series["t"].shift(3)], axis=1)
@@ -55,8 +63,23 @@ series["t-3"]= lags.iloc[:,2]
 series["t-4"]= lags.iloc[:,2]
 series["t-5"]= lags.iloc[:,2]
 #series["t-6"]= lags.iloc[:,2]
+series = functions.mutual_info(10, series)
+
+
+series = series[50:]
+mutual_info_regression(y = series.loc[:,['t']].values.ravel(), X = series.loc[:,['t-1','t-2','t-3']])
+
 series = series[10:]
 series = series.reset_index(drop=True)
+
+
+
+
+test = series.loc[:,['t']].values
+
+mi = mutual_info_regression(y = test, X = series.loc[:,['t-1','t-2','t-3']])
+
+
 stand = functions.standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                   'var','kurt','skew','osc']])
 series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
@@ -65,6 +88,39 @@ series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
 
 #series = series.iloc[:,0:5]
 series["intercept"] = 1
+
+
+
+
+
+
+
+windowsize = 10
+number_rows = series.shape[0]
+for i in range(windowsize, number_rows, 1):
+    window = series.iloc[i-windowsize:i+1]
+    kurt = kurtosis(window["t"])
+    skewness = skew(window["t"])
+    var = variance(window["t"])
+    series.loc[i,['var','kurt','skew']] = var, kurt, skewness
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
