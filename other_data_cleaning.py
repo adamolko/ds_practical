@@ -37,14 +37,16 @@ series = data.iloc[657,:].to_frame()
 series = series.iloc[6:,:]
 series = series.rename(columns={657: "t"})
 series = series.dropna()
+series = series.reset_index(drop=True)
 
 series["t"] = pd.to_numeric(series["t"])
 
-series = functions.compute_autocorrelations_in_window(10, series)
-series = functions.compute_partial_autocorrelations_in_window(10, series)
-series = functions.compute_features_in_window(10, series)
+series = functions.autocorrelations_in_window(10, series)
+series = functions.partial_autocorrelations_in_window(10, series)
+series = functions.features_in_window(10, series)
+series = functions.oscillation_behaviour_in_window(10, series)
 
-
+#turning_points = functions.turning_points(series["t"].values)
 
 lags = pd.concat([series["t"].shift(1), series["t"].shift(2), series["t"].shift(3)], axis=1)
 series["t-1"]= lags.iloc[:,0]
@@ -53,16 +55,20 @@ series["t-3"]= lags.iloc[:,2]
 series["t-4"]= lags.iloc[:,2]
 series["t-5"]= lags.iloc[:,2]
 #series["t-6"]= lags.iloc[:,2]
-series = series[9:]
+series = series[10:]
+series = series.reset_index(drop=True)
 stand = functions.standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew']])
+                                  'var','kurt','skew','osc']])
 series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew']] = stand
+                                  'var','kurt','skew','osc']] = stand
 
 
 #series = series.iloc[:,0:5]
 series["intercept"] = 1
-series = series.reset_index(drop=True)
+
+
+
+
 
 
 
@@ -75,7 +81,7 @@ fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
 signal = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew']].to_numpy()
+                                  'var','kurt','skew','osc']].to_numpy()
 
 algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
 my_bkps = algo.predict(pen=3)
