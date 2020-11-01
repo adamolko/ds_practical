@@ -11,6 +11,7 @@ from statistics import variance
 from sklearn.feature_selection import mutual_info_regression
 import numpy as np
 import pandas as pd
+import math
 
 def transform_bkps_to_features(bkps, timeseries):
     series = timeseries.copy()
@@ -120,7 +121,7 @@ def oscillation_behaviour_in_window(windowsize, timeseries):
         series.loc[i-1,['osc']] = oscillation
     return series
 
-def simulate_ar_data(n_obs, sigma, list_alphas, starting_values):
+def simulate_ar(n_obs, sigma, list_alphas, starting_values):
     list_y = starting_values.copy()
     alpha_1, alpha_2, alpha_3, alpha_4, alpha_5, alpha_6, alpha_7 = list_alphas[0],list_alphas[1],list_alphas[2],list_alphas[3],list_alphas[4],list_alphas[5],list_alphas[6]
     for x in range(7, n_obs + 7, 1):
@@ -131,7 +132,7 @@ def simulate_ar_data(n_obs, sigma, list_alphas, starting_values):
     del list_y[0:7]    
     return list_y
 
-def simulate_ar_data_incremental(n_obs, sigma_new, sigma_old, speed, list_alphas, list_old_alphas, starting_values):
+def simulate_ar_incremental(n_obs, sigma_new, sigma_old, speed, list_alphas, list_old_alphas, starting_values):
     list_y = starting_values.copy()
     concept_count = 1
     for x in range(7, n_obs + 7, 1):
@@ -154,6 +155,100 @@ def simulate_ar_data_incremental(n_obs, sigma_new, sigma_old, speed, list_alphas
         list_y.append(new_y)
         concept_count+=1
     del list_y[0:7]    
+    return list_y
+def simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values):
+    list_error = starting_values.copy()
+    list_y = []
+    alpha_1, alpha_2, alpha_3, alpha_4 = list_alphas[0],list_alphas[1],list_alphas[2],list_alphas[3]
+    for x in range(2, n_obs + 2, 1):
+        error = np.random.normal(0, sigma, 1)
+        new_y = error[0] + alpha_1 * list_error[x-1] +  alpha_2 * list_error[x-2] +  alpha_3 * list_error[x-1]*list_error[x-2]
+        new_y += alpha_4 * list_error[x-2] * list_error[x-2]
+        list_y.append(new_y)
+        list_error.append(error[0])   
+    return list_y, list_error
+def simulate_non_linear_moving_average_incremental(n_obs, sigma_new, sigma_old, speed,list_alphas, list_old_alphas, starting_values):
+    list_error = starting_values.copy()
+    list_y = []
+    concept_count = 1
+    for x in range(2, n_obs + 2, 1):
+        if concept_count <=speed:
+            weight_old = (speed-concept_count)/speed
+            weight_new = concept_count/speed
+            
+        alpha_1 = weight_new*list_alphas[0] + weight_old*list_old_alphas[0]
+        alpha_2 = weight_new*list_alphas[1] + weight_old*list_old_alphas[1]
+        alpha_3 = weight_new*list_alphas[2] + weight_old*list_old_alphas[2]
+        alpha_4 = weight_new*list_alphas[3] + weight_old*list_old_alphas[3]
+        sigma = weight_new*sigma_new + weight_old*sigma_old
+
+        error = np.random.normal(0, sigma, 1)
+        new_y = error[0] + alpha_1 * list_error[x-1] +  alpha_2 * list_error[x-2] +  alpha_3 * list_error[x-1]*list_error[x-2]
+        new_y += alpha_4 * list_error[x-2] * list_error[x-2]
+        list_y.append(new_y)
+        list_error.append(error[0])   
+    return list_y, list_error
+def simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values): 
+    list_y = starting_values.copy()
+    alpha_1, alpha_2, alpha_3, alpha_4 = list_alphas[0],list_alphas[1],list_alphas[2],list_alphas[3]
+    for x in range(4, n_obs + 4, 1):
+        error = np.random.normal(0, sigma, 1)
+        new_y = (alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  alpha_3 * list_y[x-3] +  alpha_4 * list_y[x-4])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
+        new_y +=   error[0]
+        list_y.append(new_y)
+    del list_y[0:4]    
+    return list_y
+def simulate_smooth_transitition_ar_incremental(n_obs, sigma_new, sigma_old, speed, list_alphas, list_old_alphas, starting_values): 
+    list_y = starting_values.copy()
+    concept_count = 1
+    for x in range(4, n_obs + 4, 1):
+        if concept_count <=speed:
+            weight_old = (speed-concept_count)/speed
+            weight_new = concept_count/speed
+        
+        alpha_1 = weight_new*list_alphas[0] + weight_old*list_old_alphas[0]
+        alpha_2 = weight_new*list_alphas[1] + weight_old*list_old_alphas[1]
+        alpha_3 = weight_new*list_alphas[2] + weight_old*list_old_alphas[2]
+        alpha_4 = weight_new*list_alphas[3] + weight_old*list_old_alphas[3]
+        sigma = weight_new*sigma_new + weight_old*sigma_old
+        
+        error = np.random.normal(0, sigma, 1)
+        new_y = (alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  alpha_3 * list_y[x-3] +  alpha_4 * list_y[x-4])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
+        new_y +=   error[0]
+        list_y.append(new_y)
+    del list_y[0:4]    
+    return list_y
+def simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values): 
+    list_y = starting_values.copy()
+    alpha_1, alpha_2, alpha_3, alpha_4 = list_alphas[0],list_alphas[1],list_alphas[2],list_alphas[3]
+    for x in range(2, n_obs + 2, 1):
+        error = np.random.normal(0, sigma, 1)
+        new_y = alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  (alpha_3 * list_y[x-1] +  alpha_4 * list_y[x-2])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
+        new_y += error[0]
+        print(new_y)
+        list_y.append(new_y)
+    del list_y[0:2]    
+    return list_y
+def simulate_smooth_transitition_ar_2_incremental(n_obs, sigma_new, sigma_old, speed, list_alphas, list_old_alphas, starting_values): 
+    list_y = starting_values.copy()
+    concept_count = 1
+    for x in range(2, n_obs + 2, 1):
+        if concept_count <=speed:
+            weight_old = (speed-concept_count)/speed
+            weight_new = concept_count/speed
+        
+        alpha_1 = weight_new*list_alphas[0] + weight_old*list_old_alphas[0]
+        alpha_2 = weight_new*list_alphas[1] + weight_old*list_old_alphas[1]
+        alpha_3 = weight_new*list_alphas[2] + weight_old*list_old_alphas[2]
+        alpha_4 = weight_new*list_alphas[3] + weight_old*list_old_alphas[3]
+        sigma = weight_new*sigma_new + weight_old*sigma_old
+
+        error = np.random.normal(0, sigma, 1)
+        new_y = alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  (alpha_3 * list_y[x-1] +  alpha_4 * list_y[x-2])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
+        new_y += error[0]
+        print(new_y)
+        list_y.append(new_y)
+    del list_y[0:2]    
     return list_y
 def preprocess_timeseries(timeseries):
     series = timeseries.copy()
