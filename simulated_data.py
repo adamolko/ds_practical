@@ -188,7 +188,10 @@ del list_y[0:4]
 
 lin1_abrupt = create_simdata.linear1_abrupt()
 
-plt.plot(lin1_abrupt)
+
+nonlinear2_abrupt = create_simdata.nonlinear2_abrupt()
+
+plt.plot(nonlinear2_abrupt)
 
 lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)
 
@@ -206,6 +209,16 @@ plt.show()
 
 
 
+lin1_abrupt = create_simdata.linear1_abrupt()
+lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt) #cuts out the first 10 observations
+signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+
+signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+bkps = algo.predict(pen=30)
 
 
 
@@ -214,6 +227,53 @@ plt.show()
 
 
 
+
+
+fig, (ax,) = rpt.display(signal[:,0], bkps, figsize=(10, 6))
+plt.show()
+
+
+#need to check if all 3 breakpoints correctly identified or at least close
+#the breakpoints in our artificial dataset are at indices: 
+# 499-10 = 489; 999-10=989; 1499-10=1489
+
+#list(x for x in my_bkps if 486 <= x <= 492)
+
+#remove random bkp at end:
+
+identified_bkps_total = 0
+not_detected_bkps_total = 0
+miss_detected_bkps_total = 0
+delays_score_total = 0
+
+for i in range(0, 20, 1):
+    print(i)
+    lin1_abrupt = create_simdata.linear1_abrupt()
+    lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt) #cuts out the first 10 observations
+    signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+    algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+    bkps = algo.predict(pen=30)
+
+    
+    result = functions.bkps_stats(bkps, signal)
+    identified_bkps = result[0]
+    not_detected_bkps = result[1]
+    miss_detected_bkps = result[2]
+    list_delays = result[3]
+    
+    identified_bkps_total += identified_bkps
+    not_detected_bkps_total += not_detected_bkps
+    miss_detected_bkps_total += miss_detected_bkps
+    delays_score_total += sum(list_delays)
+    
+    
+identified_bkps_total
+not_detected_bkps_total
+miss_detected_bkps_total
+delays_score_total
+
+average_delay = delays_score_total/identified_bkps_total
 
 
 

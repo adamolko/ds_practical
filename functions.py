@@ -266,9 +266,36 @@ def preprocess_timeseries(timeseries):
     series["t-5"]= lags.iloc[:,4]
     series = mutual_info(10, series)
     series = series[10:]
-    series = series.reset_index(drop=True)
+    #series = series.reset_index(drop=True)
     stand = standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']])
     series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
+def bkps_stats(bkps_signal, signal):
+    bkps = bkps_signal[:-1]
+    total_number_bkps = len(bkps)
+    
+    identified_bkps = 0
+    list_delays = []
+    range1_result = list(x for x in bkps if 489 <= x <= 504)
+    range2_result = list(x for x in bkps if 989 <= x <= 1004)
+    range3_result = list(x for x in bkps if 1489 <= x <= 1504)
+    
+    if len(range1_result)>=1:
+        identified_bkps+=1;
+        delay = range1_result[0] - 489
+        list_delays.append(delay)
+    if len(range2_result)>=1:
+        identified_bkps+=1;
+        delay = range2_result[0] - 989
+        list_delays.append(delay)
+    if len(range3_result)>=1:
+        identified_bkps+=1;
+        delay = range3_result[0] - 1489
+        list_delays.append(delay)
+    
+    miss_detected_bkps = total_number_bkps - identified_bkps
+    not_detected_bkps =  3 - identified_bkps
+    
+    return [identified_bkps, not_detected_bkps, miss_detected_bkps, list_delays]
