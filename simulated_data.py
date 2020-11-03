@@ -8,178 +8,95 @@ testing stuff on simulated data
 """
 
 
-from statsmodels.tsa.arima_process import ArmaProcess
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+
 import functions
 import create_simdata
 import ruptures as rpt
 
-###########################
-#Simulation 1
-arparams = np.array([.75, -.25, .5, -.2])
-maparams = np.array([.65, .35])
-ar = np.r_[1, -arparams] # add zero-lag and negate
-ma = np.r_[1] # add zero-lag
-#ma = np.r_[1, maparams] # add zero-lag
-AR_object = ArmaProcess(ar, ma)
-AR_object.isstationary
-simulated_data1 = AR_object.generate_sample(nsample=1000, scale=0.1)
-plt.plot(simulated_data1)
-
-simulated_data1 = pd.DataFrame(simulated_data1).rename(columns={0: "t"})
-simulated_data1 = functions.autocorrelations_in_window(10, simulated_data1)
-simulated_data1 = functions.partial_autocorrelations_in_window(10, simulated_data1)
-simulated_data1 = functions.features_in_window(10, simulated_data1)
-simulated_data1 = functions.oscillation_behaviour_in_window(10, simulated_data1)
-
-
-lags = pd.concat([simulated_data1["t"].shift(1), simulated_data1["t"].shift(2), 
-                  simulated_data1["t"].shift(3),simulated_data1["t"].shift(4)], axis=1)
-simulated_data1["t-1"]= lags.iloc[:,0]
-simulated_data1["t-2"]= lags.iloc[:,1]
-simulated_data1["t-3"]= lags.iloc[:,2]
-simulated_data1["t-4"]= lags.iloc[:,3]
-simulated_data1 = functions.mutual_info(10, simulated_data1)
-simulated_data1 = simulated_data1[10:]
-stand = functions.standardize(simulated_data1.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']])
-simulated_data1.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
-
-
-#series = series.iloc[:,0:5]
-simulated_data1["intercept"] = 1
-simulated_data1 = simulated_data1.reset_index(drop=True)
-
-
-
-signal = simulated_data1.loc[:,["t", "t-1", "t-2", "t-3", "t-4", "intercept"]]
-signal = signal.to_numpy()
-
-algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
-my_bkps = algo.predict(pen=1)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
-plt.show()
-
-signal = simulated_data1.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
-
-signal = simulated_data1.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc']].to_numpy()
-
-algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-my_bkps = algo.predict(pen=5)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
-plt.show()
-
-
-
-###########################
-
-
-###########################
-#Simulation 2
-arparams = np.array([])
-maparams = np.array([.5])
-ar = np.r_[1, -arparams] # add zero-lag and negate
-ma = np.r_[1, maparams] # add zero-lag
-AR_object = ArmaProcess(ar, ma)
-AR_object.isstationary
-simulated_data_first_half = AR_object.generate_sample(nsample=500, scale=0.1)
-
-arparams  = np.array([.75, -.25, .5, -.2])
-maparams = np.array([.5])
-ar = np.r_[1, -arparams] # add zero-lag and negate
-ma = np.r_[1, maparams] # add zero-lag
-AR_object = ArmaProcess(ar, ma)
-AR_object.isstationary
-simulated_data_second_half = AR_object.generate_sample(nsample=500, scale=0.1)
-
-simulated_data2 = np.concatenate((simulated_data_first_half, simulated_data_second_half))
-plt.plot(simulated_data2)
-
-
-simulated_data2 = pd.DataFrame(simulated_data2).rename(columns={0: "t"})
-simulated_data2 = functions.autocorrelations_in_window(10, simulated_data2)
-simulated_data2 = functions.partial_autocorrelations_in_window(10, simulated_data2)
-simulated_data2 = functions.features_in_window(10, simulated_data2)
-simulated_data2 = functions.oscillation_behaviour_in_window(10, simulated_data2)
-
-
-
-lags = pd.concat([simulated_data2["t"].shift(1), simulated_data2["t"].shift(2), 
-                  simulated_data2["t"].shift(3),simulated_data2["t"].shift(4)], axis=1)
-simulated_data2["t-1"]= lags.iloc[:,0]
-simulated_data2["t-2"]= lags.iloc[:,1]
-simulated_data2["t-3"]= lags.iloc[:,2]
-simulated_data2["t-4"]= lags.iloc[:,3]
-simulated_data2 = functions.mutual_info(10, simulated_data2)
-simulated_data2 = simulated_data2[10:]
-stand = functions.standardize(simulated_data2.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']])
-simulated_data2.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
-
-
-#series = series.iloc[:,0:5]
-simulated_data2["intercept"] = 1
-simulated_data2 = simulated_data2.reset_index(drop=True)
-
-
-
-signal = simulated_data2.loc[:,["t", "t-1", "t-2", "t-3", "t-4", "intercept"]]
-signal = signal.to_numpy()
-
-algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
-my_bkps = algo.predict(pen=1)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
-plt.show()
-
-signal = simulated_data2.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
-
-signal = simulated_data2.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc']].to_numpy()
-
-algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-my_bkps = algo.predict(pen=10)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
-plt.show()
+import ray
+ray.init(address='auto', _redis_password='5241590000000000', include_dashboard=False)
+assert ray.is_initialized() == True
+from ray import tune
+#ray.shutdown()
 
 
 
 
 
-###########################
-#create similar artificial datasets as in FEDD paper (could also try the exact same)
-#they used linear and non-linear model time series
-#for both categories they created 3 groups of different models (with different coefficients)
-#for each group they have a an abrupt & a gradual drift
-#for each dataset they have 3 drifts in there
 
-#start with linear models and abrupt drift
+result = functions.analysis_rbf(penalization=30, iterations = 10, data_creation_function = create_simdata.linear1_abrupt)
+result2 = functions.analysis_rbf(penalization=30, iterations = 10, data_creation_function = create_simdata.nonlinear1_abrupt)
 
 
-list_y = []
-list_y.append(1)
-list_y.append(0.5)
-list_y.append(1.5)
-list_y.append(1.2)
-alpha_1 = 0.9
-alpha_2 = -0.2
-alpha_3 = 0.8
-alpha_4 = -0.5
 
-sigma = 0.1 # mean and standard deviation
 
-for x in range(4,1000,1):
-    error = np.random.normal(0, sigma, 1)
-    new_y = alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  alpha_3 * list_y[x-3] +  alpha_4 * list_y[x-4] + error[0]
-    list_y.append(new_y)
 
-del list_y[0:4]
+# =============================================================================
+# futures = [functions.analysis_rbf.remote(penalization = i, iterations = 5, data_creation_function = create_simdata.linear1_abrupt) for i in range(4)]
+# 
+# print(ray.get(futures)) # [0, 1, 4, 9]
+# 
+# 
+# 
+# @ray.remote
+# def f(x):
+#     return x * x
+# 
+# futures = [f.remote(i) for i in range(4)]
+# print(ray.get(futures)) # [0, 1, 4, 9]
+# =============================================================================
+
+
+list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear2_abrupt]
+
+
+def objective(pen, function):
+    return functions.analysis_rbf(penalization = pen, iterations = 30, size_concepts=250, data_creation_function = function)
+
+
+def training_function(config):
+    # Hyperparameters
+    pen = config["pen"]
+# =============================================================================
+#    Might be able to do something like this for the different datasets
+#    for step in range(10):
+#         # Iterative training function - can be any arbitrary training procedure.
+#         intermediate_score = objective(step, alpha, beta)
+#         # Feed the score back back to Tune.
+#         tune.report(mean_loss=intermediate_score)
+# =============================================================================
+    for function in list_data_functions:
+        intermediate_result = objective(pen, function)
+ 
+    #Feed the score back back to Tune.
+    tune.report(miss_detection_rate =  intermediate_result[0],
+                detection_rate = intermediate_result[1], average_delay = intermediate_result[2])
+    
+analysis = tune.run(
+    training_function,
+    config={
+        "pen": tune.quniform(1, 100, 1),
+        #"beta": tune.choice([1, 2, 3]) 
+    },
+    #num_samples=16,
+    num_samples=100)
+    #resources_per_trial={"cpu": 2, "gpu": 0.1})
+    #resources_per_trial={"gpu": 0.1})
+
+df = analysis.results_df
+
+
+
+
+
+
+
+
+
 
 
 
@@ -187,6 +104,23 @@ del list_y[0:4]
 #-------------------------------------------------------------------------
 
 lin1_abrupt = create_simdata.linear1_abrupt()
+lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)
+
+series = pd.DataFrame({"t":lin1_abrupt})
+series = functions.autocorrelations_in_window(10, series)
+series = functions.partial_autocorrelations_in_window(10, series)
+series = functions.features_in_window(10, series)
+series = functions.oscillation_behaviour_in_window(10, series)
+
+
+
+
+
+
+
+
+
+
 
 
 nonlinear2_abrupt = create_simdata.nonlinear2_abrupt()
@@ -206,9 +140,6 @@ plt.show()
 
 
 
-
-
-
 lin1_abrupt = create_simdata.linear1_abrupt()
 lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt) #cuts out the first 10 observations
 signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
@@ -222,62 +153,8 @@ bkps = algo.predict(pen=30)
 
 
 
-
-
-
-
-
-
-
 fig, (ax,) = rpt.display(signal[:,0], bkps, figsize=(10, 6))
 plt.show()
 
 
-#need to check if all 3 breakpoints correctly identified or at least close
-#the breakpoints in our artificial dataset are at indices: 
-# 499-10 = 489; 999-10=989; 1499-10=1489
-
-#list(x for x in my_bkps if 486 <= x <= 492)
-
-#remove random bkp at end:
-
-identified_bkps_total = 0
-not_detected_bkps_total = 0
-miss_detected_bkps_total = 0
-delays_score_total = 0
-
-for i in range(0, 20, 1):
-    print(i)
-    lin1_abrupt = create_simdata.linear1_abrupt()
-    lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt) #cuts out the first 10 observations
-    signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
-                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
-    algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-    bkps = algo.predict(pen=30)
-
-    
-    result = functions.bkps_stats(bkps, signal)
-    identified_bkps = result[0]
-    not_detected_bkps = result[1]
-    miss_detected_bkps = result[2]
-    list_delays = result[3]
-    
-    identified_bkps_total += identified_bkps
-    not_detected_bkps_total += not_detected_bkps
-    miss_detected_bkps_total += miss_detected_bkps
-    delays_score_total += sum(list_delays)
-    
-    
-identified_bkps_total
-not_detected_bkps_total
-miss_detected_bkps_total
-delays_score_total
-
-average_delay = delays_score_total/identified_bkps_total
-
-
-
-
-
-
-
+test = functions.analysis_rbf(penalization = 20, iterations = 1, data_creation_function = create_simdata.linear1_abrupt, size_concepts=250)

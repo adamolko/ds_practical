@@ -11,33 +11,34 @@ import pandas as pd
 import functions
 
 def linear1_abrupt():
+    n_obs = 250
     #Linear 1 - Abrupt
     #Concept 1
     lin1_abrupt = []
-    n_obs=500
+    #n_obs=500
     starting_values = [0, 0, 0, 1, 0.5, 1.5, 1.2]
     list_alphas = [0.9, -0.2, 0.8, -0.5, 0, 0, 0]
     sigma = 0.5
     lin1_abrupt = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin1_abrupt[493:]
+    #n_obs=500
+    starting_values = lin1_abrupt[n_obs-7:]
     list_alphas = [-0.3, 1.4, 0.4, -0.5, 0, 0, 0]   
     sigma = 1.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin1_abrupt = [*lin1_abrupt, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin1_abrupt[993:]
+    #n_obs=500
+    starting_values = lin1_abrupt[(2*n_obs)-7:]
     list_alphas = [1.5, -0.4, -0.3, 0.2, 0, 0, 0]   
     sigma = 2.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin1_abrupt = [*lin1_abrupt, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin1_abrupt[1493:]
+    #n_obs=500
+    starting_values = lin1_abrupt[(3*n_obs)-7:]
     list_alphas = [-0.1, 1.4, 0.4, -0.7, 0, 0, 0]   
     sigma = 3.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
@@ -46,34 +47,35 @@ def linear1_abrupt():
     return lin1_abrupt
     
 def linear2_abrupt():
+    n_obs = 250
     ##########
     #Linear 2 - Abrupt
     #Concept 1
     lin2_abrupt = []
-    n_obs=500
+    #n_obs=500
     starting_values = [0, 0.8, 0.2, 1, 0.5, 1.5, 1.2]
     list_alphas = [1, -0.6, 0.8, -0.5, -0.1, 0.3, 0]
     sigma = 0.5
-    lin2_abrupt = functions.simulate_ara(n_obs, sigma, list_alphas, starting_values)
+    lin2_abrupt = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin2_abrupt[493:]
+    #n_obs=500
+    starting_values = lin2_abrupt[n_obs-7:]
     list_alphas = [-0.1, 1.2, 0.4, 0.3, -0.2, -0.6, 0]   
     sigma = 1.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin2_abrupt = [*lin2_abrupt, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin2_abrupt[993:]
+    #n_obs=500
+    starting_values = lin2_abrupt[(2*n_obs)-7:]
     list_alphas = [1.2, -0.4, -0.3, 0.7, -0.6, 0.4, 0]   
     sigma = 2.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin2_abrupt = [*lin2_abrupt, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin2_abrupt[1493:]
+    #n_obs=500
+    starting_values = lin2_abrupt[(3*n_obs)-7:]
     list_alphas = [-0.1, 1.1, 0.5, 0.2, -0.2, -0.5, 0]   
     sigma = 3.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
@@ -82,34 +84,35 @@ def linear2_abrupt():
     return lin2_abrupt
 
 def linear3_abrupt():
+    n_obs = 250
     ##########
     #Linear 3 - Abrupt
     #Concept 1
     lin3_abrupt = []
-    n_obs=500
+    #n_obs=500
     starting_values = [0, 0, 0, 0, 0, 0.5, 1]
     list_alphas = [0.5, 0.5, 0, 0, 0, 0, 0]
     sigma = 0.5
     lin3_abrupt = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin3_abrupt[493:]
+   # n_obs=500
+    starting_values = lin3_abrupt[n_obs-7:]
     list_alphas = [1.5, -0.5, 0, 0, 0, 0, 0]   
     sigma = 1.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin3_abrupt = [*lin3_abrupt, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin3_abrupt[993:]
+   # n_obs=500
+    starting_values = lin3_abrupt[(2*n_obs)-7:]
     list_alphas = [0.9, -0.2, 0.8, -0.5, 0, 0, 0]   
     sigma = 2.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     lin3_abrupt = [*lin3_abrupt, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin3_abrupt[1493:]
+    #n_obs=500
+    starting_values = lin3_abrupt[(3*n_obs)-7:]
     list_alphas = [0.9, 0.8, -0.6, 0.2, -0.5, -0.2, 0.4]   
     sigma = 3.5
     new_data = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)

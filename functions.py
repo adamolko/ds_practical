@@ -12,6 +12,10 @@ from sklearn.feature_selection import mutual_info_regression
 import numpy as np
 import pandas as pd
 import math
+import create_simdata
+import ruptures as rpt
+import ray
+#ray.init()
 
 def transform_bkps_to_features(bkps, timeseries):
     series = timeseries.copy()
@@ -54,12 +58,13 @@ def autocorrelations_in_window(windowsize, timeseries):
     number_rows = series.shape[0] 
     for i in range(windowsize, number_rows+1, 1):
         window = series.iloc[i-windowsize:i]
-        acfs = arma_stats.acf(window["t"], nlags=5)
+        acfs = arma_stats.acf(window["t"], nlags=5, fft=False)
         series.loc[i-1,['acf0','acf1','acf2', 'acf3', 'acf4', 'acf5' ]] = acfs     
     return series
  
 
 def partial_autocorrelations_in_window(windowsize, timeseries):
+    #there is still an error: RuntimeWarning: invalid value encountered in sqrt return rho, np.sqrt(sigmasq)
     series = timeseries.copy()
     series['pacf0'], series['pacf1'], series['pacf2'], series['pacf3'] = [0, 0, 0, 0]
     number_rows = series.shape[0] 
@@ -272,30 +277,78 @@ def preprocess_timeseries(timeseries):
     series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
-def bkps_stats(bkps_signal, signal):
+def bkps_stats(bkps_signal, signal, size_concepts):
     bkps = bkps_signal[:-1]
     total_number_bkps = len(bkps)
     
     identified_bkps = 0
     list_delays = []
-    range1_result = list(x for x in bkps if 489 <= x <= 504)
-    range2_result = list(x for x in bkps if 989 <= x <= 1004)
-    range3_result = list(x for x in bkps if 1489 <= x <= 1504)
+# =============================================================================
+#     range1_result = list(x for x in bkps if 489 <= x <= 504)
+#     range2_result = list(x for x in bkps if 989 <= x <= 1004)
+#     range3_result = list(x for x in bkps if 1489 <= x <= 1504)
+# =============================================================================
+    range1_result = list(x for x in bkps if (size_concepts-11) <= x <= (size_concepts+4) )
+    range2_result = list(x for x in bkps if (2*size_concepts-11) <= x <= (2*size_concepts+4))
+    range3_result = list(x for x in bkps if (3*size_concepts-11) <= x <= (3*size_concepts+4))
     
     if len(range1_result)>=1:
         identified_bkps+=1;
-        delay = range1_result[0] - 489
+        delay = range1_result[0] - (size_concepts-11)
         list_delays.append(delay)
     if len(range2_result)>=1:
         identified_bkps+=1;
-        delay = range2_result[0] - 989
+        delay = range2_result[0] - (2*size_concepts-11)
         list_delays.append(delay)
     if len(range3_result)>=1:
         identified_bkps+=1;
-        delay = range3_result[0] - 1489
+        delay = range3_result[0] - (3*size_concepts-11)
         list_delays.append(delay)
     
     miss_detected_bkps = total_number_bkps - identified_bkps
     not_detected_bkps =  3 - identified_bkps
     
     return [identified_bkps, not_detected_bkps, miss_detected_bkps, list_delays]
+
+#@ray.remote
+def analysis_rbf(penalization, iterations, data_creation_function, size_concepts):
+    identified_bkps_total = 0
+    not_detected_bkps_total = 0
+    miss_detected_bkps_total = 0
+    delays_score_total = 0
+    
+    for i in range(0, iterations, 1):
+        print(i)
+        data = data_creation_function()
+        data = preprocess_timeseries(data) #cuts out the first 10 observations
+        signal = data.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                      'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+        algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+        bkps = algo.predict(pen=penalization)
+    
+        
+        result = bkps_stats(bkps, signal, size_concepts)
+        identified_bkps = result[0]
+        not_detected_bkps = result[1]
+        miss_detected_bkps = result[2]
+        list_delays = result[3]
+        
+        identified_bkps_total += identified_bkps
+        not_detected_bkps_total += not_detected_bkps
+        miss_detected_bkps_total += miss_detected_bkps
+        delays_score_total += sum(list_delays)
+        
+    
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        miss_detection_rate = miss_detected_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        miss_detection_rate = 0
+    detection_rate = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+    
+    return [miss_detection_rate, detection_rate, average_delay]
+
+
