@@ -125,41 +125,36 @@ def linear1_inc():
     #Linear 1 - Incremental
     #Concept 1
     lin1_inc = []
-    n_obs=500
+    n_obs = 200
     starting_values = [0, 0, 0, 1, 0.5, 1.5, 1.2]
     list_alphas = [0.9, -0.2, 0.8, -0.5, 0, 0, 0]
     sigma = 0.5
     lin1_inc = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin1_inc[493:]
+    starting_values = lin1_inc[n_obs-7:]
     list_alphas = [-0.3, 1.4, 0.4, -0.5, 0, 0, 0]  
     list_old_alphas = [0.9, -0.2, 0.8, -0.5, 0, 0, 0] 
     sigma = 1.5
     sigma_old = 0.5
-    speed = 30
+    speed = 20
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin1_inc = [*lin1_inc, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin1_inc[993:]
+    starting_values = lin1_inc[2*n_obs-7:]
     list_alphas = [1.5, -0.4, -0.3, 0.2, 0, 0, 0]   
     list_old_alphas = [-0.3, 1.4, 0.4, -0.5, 0, 0, 0]  
     sigma = 2.5
     sigma_old = 1.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin1_inc = [*lin1_inc, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin1_inc[1493:]
+    starting_values = lin1_inc[3*n_obs-7:]
     list_alphas = [-0.1, 1.4, 0.4, -0.7, 0, 0, 0]   
     list_old_alphas = [1.5, -0.4, -0.3, 0.2, 0, 0, 0]   
     sigma = 3.5
     sigma_old = 2.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin1_inc = [*lin1_inc, *new_data]
     
@@ -167,41 +162,36 @@ def linear1_inc():
 
 def linear2_inc():
     lin2_inc = []
-    n_obs=500
+    n_obs=200
     starting_values = [0, 0.8, 0.2, 1, 0.5, 1.5, 1.2]
     list_alphas = [1, -0.6, 0.8, -0.5, -0.1, 0.3, 0]
     sigma = 0.5
     lin2_inc = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin2_inc[493:]
+    starting_values = lin2_inc[n_obs-7:]
     list_alphas = [-0.1, 1.2, 0.4, 0.3, -0.2, -0.6, 0]
     list_old_alphas = [1, -0.6, 0.8, -0.5, -0.1, 0.3, 0]   
     sigma = 1.5
     sigma_old = 0.5
-    speed = 30
+    speed = 20
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin2_inc = [*lin2_inc, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin2_inc[993:]
+    starting_values = lin2_inc[2*n_obs-7:]
     list_alphas = [1.2, -0.4, -0.3, 0.7, -0.6, 0.4, 0]   
     list_old_alphas = [-0.1, 1.2, 0.4, 0.3, -0.2, -0.6, 0]
     sigma = 2.5
     sigma_old = 1.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin2_inc = [*lin2_inc, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin2_inc[1493:]
+    starting_values = lin2_inc[3*n_obs-7:]
     list_alphas = [-0.1, 1.1, 0.5, 0.2, -0.2, -0.5, 0]  
     list_old_alphas = [1.2, -0.4, -0.3, 0.7, -0.6, 0.4, 0]  
     sigma = 3.5
     sigma_old = 2.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin2_inc = [*lin2_inc, *new_data]
     
@@ -212,41 +202,36 @@ def linear3_inc():
     #Linear 3 - Incremental
     #Concept 1
     lin3_inc = []
-    n_obs=500
+    n_obs=200
     starting_values = [0, 0, 0, 0, 0, 0.5, 1]
     list_alphas = [0.5, 0.5, 0, 0, 0, 0, 0]
     sigma = 0.5
     lin3_inc = functions.simulate_ar(n_obs, sigma, list_alphas, starting_values)
     #Concept 2
-    n_obs=500
-    starting_values = lin3_inc[493:]
+    starting_values = lin3_inc[n_obs-7:]
     list_alphas = [1.5, -0.5, 0, 0, 0, 0, 0]   
     list_old_alphas = [0.5, 0.5, 0, 0, 0, 0, 0]
     sigma = 1.5
     sigma_old = 0.5
-    speed = 30
+    speed = 20
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin3_inc = [*lin3_inc, *new_data]
     ##########
     #Concept 3
-    n_obs=500
-    starting_values = lin3_inc[993:]
+    starting_values = lin3_inc[2*n_obs-7:]
     list_alphas = [0.9, -0.2, 0.8, -0.5, 0, 0, 0]   
     list_old_alphas = [0.5, 0.5, 0, 0, 0, 0, 0]
     sigma = 2.5
     sigma_old = 1.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin3_inc = [*lin3_inc, *new_data]
     ##########
     #Concept 4
-    n_obs=500
-    starting_values = lin3_inc[1493:]
+    starting_values = lin3_inc[3*n_obs-7:]
     list_alphas = [0.9, 0.8, -0.6, 0.2, -0.5, -0.2, 0.4]   
     list_old_alphas = [0.5, 0.5, 0, 0, 0, 0, 0]
     sigma = 3.5
     sigma_old = 2.5
-    speed = 30
     new_data = functions.simulate_ar_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)
     lin3_inc = [*lin3_inc, *new_data]
     
@@ -337,6 +322,7 @@ def nonlinear3_abrupt():
         n_obs = 200
         nonlin3_abrupt= []
         starting_values = [0.2, 0.1]
+        #list_alphas = [0.9, -0.2, 0.8, -0.5]
         list_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 0.5
         nonlin3_abrupt = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
@@ -349,7 +335,8 @@ def nonlinear3_abrupt():
         ##########
         #Concept 3
         starting_values = nonlin3_abrupt[2*n_obs-2:]
-        list_alphas = [1.5, -0.4, -0.3, 0.2]  
+        #list_alphas = [1.5, -0.4, -0.3, 0.2]  
+        list_alphas = [0.2, -0.3, -0.4, 1.5]  
         sigma = 2.5
         new_data = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
         nonlin3_abrupt = [*nonlin3_abrupt, *new_data]
@@ -370,15 +357,14 @@ def nonlinear1_inc():
     #Nonlinear 1 - Incremental
     #Concept 1
     nonlin1_inc = []
-    n_obs=500
+    n_obs=200
     starting_values = [-0.5, 0.5] #here the errors are the starting values
     list_alphas = [0.9, -0.2, 0.8, -0.5]
     sigma = 0.5
     result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
     nonlin1_inc = result[0]
-    last_errors = result[1][500:]
+    last_errors = result[1][n_obs:]
     #Concept 2
-    n_obs=500
     starting_values = last_errors
     list_alphas = [-0.3, 1.4, 0.4, -0.5]   
     list_old_alphas =  [0.9, -0.2, 0.8, -0.5]
@@ -387,10 +373,9 @@ def nonlinear1_inc():
     speed = 20
     result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
     nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][500:]
+    last_errors = result[1][n_obs:]
     ##########
     #Concept 3
-    n_obs=500
     starting_values = last_errors
     list_alphas = [1.5, -0.4, -0.3, 0.2]   
     list_old_alphas = [-0.3, 1.4, 0.4, -0.5]   
@@ -398,10 +383,9 @@ def nonlinear1_inc():
     sigma_old = 1.5
     result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
     nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][500:]
+    last_errors = result[1][n_obs:]
     ##########
     #Concept 4
-    n_obs=500
     starting_values = last_errors
     list_alphas = [-0.1, 1.4, 0.4, -0.7]   
     list_old_alphas = [1.5, -0.4, -0.3, 0.2]   
@@ -409,7 +393,7 @@ def nonlinear1_inc():
     sigma_old = 2.5
     result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
     nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][500:]
+    last_errors = result[1][n_obs:]
     
     return nonlin1_inc
 def nonlinear2_inc():
@@ -418,14 +402,13 @@ def nonlinear2_inc():
         #Nonlinear 2 - Incremental
         #Concept 1
         nonlin2_inc = []
-        n_obs=500
+        n_obs=200
         starting_values = [1, 0.5, 1, 1.2]
         list_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 0.5
         nonlin2_inc = functions.simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values)
         #Concept 2
-        n_obs=500
-        starting_values = nonlin2_inc[496:]
+        starting_values = nonlin2_inc[n_obs-4:]
         list_alphas = [-0.3, 1.4, 0.4, -0.5]   
         list_old_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 1.5
@@ -435,8 +418,7 @@ def nonlinear2_inc():
         nonlin2_inc = [*nonlin2_inc, *new_data]
         ##########
         #Concept 3
-        n_obs=500
-        starting_values = nonlin2_inc[996:]
+        starting_values = nonlin2_inc[2*n_obs-4:]
         list_alphas = [1.5, -0.4, -0.3, 0.2]   
         list_old_alphas = [-0.3, 1.4, 0.4, -0.5]   
         sigma = 2.5
@@ -445,8 +427,7 @@ def nonlinear2_inc():
         nonlin2_inc = [*nonlin2_inc, *new_data]
         ##########
         #Concept 4
-        n_obs=500
-        starting_values = nonlin2_inc[1496:]
+        starting_values = nonlin2_inc[3*n_obs-4:]
         list_alphas = [-0.1, 1.4, 0.4, -0.7]   
         list_old_alphas = [1.5, -0.4, -0.3, 0.2]  
         sigma = 3.5
@@ -464,14 +445,13 @@ def nonlinear3_inc():
         #Nonlinear 3 - Incremental
         #Concept 1
         nonlin3_inc = []
-        n_obs=500
+        n_obs=200
         starting_values = [0.2, 0.1]
         list_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 0.5
         nonlin3_inc = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
         #Concept 2
-        n_obs=500
-        starting_values = nonlin3_inc[498:]
+        starting_values = nonlin3_inc[n_obs-2:]
         list_alphas = [-0.5, 0.4, 1.4, -0.3] 
         list_old_alphas =  [0.9, -0.2, 0.8, -0.5]
         sigma = 1.5
@@ -481,9 +461,9 @@ def nonlinear3_inc():
         nonlin3_inc = [*nonlin3_inc, *new_data]
         ##########
         #Concept 3
-        n_obs=500
-        starting_values = nonlin3_inc[998:]
-        list_alphas = [1.5, -0.4, -0.3, 0.2]  
+        starting_values = nonlin3_inc[2*n_obs-2:]
+        #list_alphas = [1.5, -0.4, -0.3, 0.2]  
+        list_alphas = [0.2, -0.3, -0.4, 1.5]  
         list_old_alphas = [-0.5, 0.4, 1.4, -0.3] 
         sigma = 2.5
         sigma_old = 1.5
@@ -491,10 +471,9 @@ def nonlinear3_inc():
         nonlin3_inc = [*nonlin3_inc, *new_data]
         ##########
         #Concept 4
-        n_obs=500
-        starting_values = nonlin3_inc[1498:]
+        starting_values = nonlin3_inc[3*n_obs-2:]
         list_alphas = [-0.7, 0.4, 1.4, -0.1]   
-        list_old_alphas = [1.5, -0.4, -0.3, 0.2] 
+        list_old_alphas = [0.2, -0.3, -0.4, 1.5]  
         sigma = 3.5
         sigma_old = 2.5
         new_data = functions.simulate_smooth_transitition_ar_2_incremental(n_obs, sigma, sigma_old, speed, list_alphas, list_old_alphas, starting_values)

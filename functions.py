@@ -277,7 +277,7 @@ def preprocess_timeseries(timeseries):
     series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
-def bkps_stats(bkps_signal, signal, size_concepts):
+def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
     bkps = bkps_signal[:-1]
     total_number_bkps = len(bkps)
     
@@ -288,9 +288,9 @@ def bkps_stats(bkps_signal, signal, size_concepts):
 #     range2_result = list(x for x in bkps if 989 <= x <= 1004)
 #     range3_result = list(x for x in bkps if 1489 <= x <= 1504)
 # =============================================================================
-    range1_result = list(x for x in bkps if (size_concepts-11) <= x <= (size_concepts+4) )
-    range2_result = list(x for x in bkps if (2*size_concepts-11) <= x <= (2*size_concepts+4))
-    range3_result = list(x for x in bkps if (3*size_concepts-11) <= x <= (3*size_concepts+4))
+    range1_result = list(x for x in bkps if (size_concepts-11) <= x <= (size_concepts+4+obs_amount_beyond_window ))
+    range2_result = list(x for x in bkps if (2*size_concepts-11) <= x <= (2*size_concepts+4+obs_amount_beyond_window))
+    range3_result = list(x for x in bkps if (3*size_concepts-11) <= x <= (3*size_concepts+4+obs_amount_beyond_window))
     
     if len(range1_result)>=1:
         identified_bkps+=1;
@@ -311,7 +311,7 @@ def bkps_stats(bkps_signal, signal, size_concepts):
     return [identified_bkps, not_detected_bkps, miss_detected_bkps, list_delays]
 
 #@ray.remote
-def analysis_rbf(penalization, iterations, data_creation_function, size_concepts):
+def analysis_rbf(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
     miss_detected_bkps_total = 0
@@ -327,7 +327,7 @@ def analysis_rbf(penalization, iterations, data_creation_function, size_concepts
         bkps = algo.predict(pen=penalization)
     
         
-        result = bkps_stats(bkps, signal, size_concepts)
+        result = bkps_stats(bkps, signal, size_concepts, obs_amount_beyond_window)
         identified_bkps = result[0]
         not_detected_bkps = result[1]
         miss_detected_bkps = result[2]
@@ -342,7 +342,58 @@ def analysis_rbf(penalization, iterations, data_creation_function, size_concepts
     if  (identified_bkps_total + miss_detected_bkps_total)!=0:
         precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
     else:
-        miss_detection_rate = 0
+        precision = 0
+    recall = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+    
+    return [precision, recall, average_delay]
+
+def analysis_linear(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window):
+    identified_bkps_total = 0
+    not_detected_bkps_total = 0
+    miss_detected_bkps_total = 0
+    delays_score_total = 0
+    
+    for i in range(0, iterations, 1):
+        print(i)
+        data = data_creation_function()
+        
+        #data = preprocess_timeseries(data) #cuts out the first 10 observations
+        
+        lags = pd.concat([data["t"].shift(1), data["t"].shift(2), 
+                      data["t"].shift(3),data["t"].shift(4),data["t"].shift(5)], axis=1)
+        data["t-1"]= lags.iloc[:,0]
+        data["t-2"]= lags.iloc[:,1]
+        data["t-3"]= lags.iloc[:,2]
+        data["t-4"]= lags.iloc[:,3]
+        data["t-5"]= lags.iloc[:,4]
+        data = mutual_info(10, data)
+        data = data[10:]
+
+        signal = data.loc[:,["t", 't-1','t-2', 't-3','t-4','t-5']].to_numpy()
+        algo = rpt.Pelt(model="linear", min_size=2, jump=1).fit(signal)
+        bkps = algo.predict(pen=penalization)
+    
+        
+        result = bkps_stats(bkps, signal, size_concepts, obs_amount_beyond_window)
+        identified_bkps = result[0]
+        not_detected_bkps = result[1]
+        miss_detected_bkps = result[2]
+        list_delays = result[3]
+        
+        identified_bkps_total += identified_bkps
+        not_detected_bkps_total += not_detected_bkps
+        miss_detected_bkps_total += miss_detected_bkps
+        delays_score_total += sum(list_delays)
+        
+    
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        precision = 0
     recall = identified_bkps_total/(iterations*3)
     if identified_bkps_total!=0:
         average_delay = delays_score_total/identified_bkps_total

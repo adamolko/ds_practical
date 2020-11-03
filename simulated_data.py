@@ -53,10 +53,13 @@ result2 = functions.analysis_rbf(penalization=30, iterations = 10, data_creation
 #switch this, based on what kind of data to use
 list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear2_abrupt]
 list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
+list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
+list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
 
 
 def objective(pen, function):
-    return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, data_creation_function = function)
+    return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
+                                  data_creation_function = function, obs_amount_beyond_window=5)
 
 
 def training_function(config):
@@ -100,10 +103,10 @@ df2["f1"].fillna(0, inplace=True)
 
 
 #change name here
-df2.to_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl") 
+df2.to_pickle("results/result_hyperpara_opt_linear_inc_complete.pkl") 
 
 
-df2 = pd.read_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl")
+#df2 = pd.read_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl")
 
 
 
@@ -115,7 +118,7 @@ df2.plot.scatter(x='config.pen', y='precision', color='Orange', label='Precision
 plt.xlabel("Penalization")
 plt.ylabel("Rate")
 #change name here:
-plt.savefig("results/linearabrupt_complete_recall_vs_prec.png", dpi=150)
+plt.savefig("results/linear_inc_complete_recall_vs_prec.png", dpi=150)
 
 #Plot 2:
 
@@ -123,7 +126,7 @@ plt.savefig("results/linearabrupt_complete_recall_vs_prec.png", dpi=150)
 ax = df2.plot.scatter(x='config.pen', y='f1', color='Green',);
 plt.xlabel("Penalization")
 #change name here:
-plt.savefig("results/linearabrupt_complete_f1.png", dpi=150)
+plt.savefig("results/linear_inc_complete_f1.png", dpi=150)
 
 
 
@@ -171,18 +174,19 @@ series = functions.oscillation_behaviour_in_window(10, series)
 
 
 
-nonlinear2_abrupt = create_simdata.nonlinear2_abrupt()
+nonlinear2_abrupt = create_simdata.nonlinear3_abrupt()
+nonlinear2_abrupt = functions.preprocess_timeseries(nonlinear2_abrupt)
 
 plt.plot(nonlinear2_abrupt)
 
 lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)
 
 
-signal = lin1_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+signal = nonlinear2_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                   'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
 
 algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-my_bkps = algo.predict(pen=20)
+my_bkps = algo.predict(pen=10)
 fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
