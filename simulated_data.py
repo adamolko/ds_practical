@@ -11,7 +11,7 @@ testing stuff on simulated data
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import random
 
 import functions
 import create_simdata
@@ -24,7 +24,7 @@ from ray import tune
 #ray.shutdown()
 
 
-
+create_simdata.nonlinear3_abrupt()
 
 
 
@@ -50,17 +50,20 @@ result2 = functions.analysis_rbf(penalization=30, iterations = 10, data_creation
 # print(ray.get(futures)) # [0, 1, 4, 9]
 # =============================================================================
 
-
+#switch this, based on what kind of data to use
 list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear2_abrupt]
+list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
 
 
 def objective(pen, function):
-    return functions.analysis_rbf(penalization = pen, iterations = 30, size_concepts=250, data_creation_function = function)
+    return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, data_creation_function = function)
 
 
 def training_function(config):
     # Hyperparameters
     pen = config["pen"]
+    #function = config["datafunction"]
+    function = random.choice(list_data_functions)
 # =============================================================================
 #    Might be able to do something like this for the different datasets
 #    for step in range(10):
@@ -69,25 +72,68 @@ def training_function(config):
 #         # Feed the score back back to Tune.
 #         tune.report(mean_loss=intermediate_score)
 # =============================================================================
-    for function in list_data_functions:
-        intermediate_result = objective(pen, function)
+    #for function in list_data_functions:
+    #function = create_simdata.linear1_abrupt
+    intermediate_result = objective(pen, function)
+    tune.report(precision =  intermediate_result[0],
+            recall = intermediate_result[1], average_delay = intermediate_result[2])
  
     #Feed the score back back to Tune.
-    tune.report(miss_detection_rate =  intermediate_result[0],
-                detection_rate = intermediate_result[1], average_delay = intermediate_result[2])
+    
     
 analysis = tune.run(
     training_function,
     config={
         "pen": tune.quniform(1, 100, 1),
-        #"beta": tune.choice([1, 2, 3]) 
+        #"datafunction": tune.choice(list_data_functions),
     },
     #num_samples=16,
     num_samples=100)
     #resources_per_trial={"cpu": 2, "gpu": 0.1})
     #resources_per_trial={"gpu": 0.1})
 
-df = analysis.results_df
+df2 = analysis.results_df
+
+#F1 = 2 * (precision * recall) / (precision + recall)
+df2["f1"] = 2*(df2["precision"]*df2["recall"])/(df2["precision"]+df2["recall"])
+df2["f1"].fillna(0, inplace=True)
+
+
+#change name here
+df2.to_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl") 
+
+
+df2 = pd.read_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl")
+
+
+
+
+
+#Plot 1:
+ax = df2.plot.scatter(x='config.pen', y='recall', label='Recall', color='Green',);
+df2.plot.scatter(x='config.pen', y='precision', color='Orange', label='Precision', ax=ax);
+plt.xlabel("Penalization")
+plt.ylabel("Rate")
+#change name here:
+plt.savefig("results/linearabrupt_complete_recall_vs_prec.png", dpi=150)
+
+#Plot 2:
+
+
+ax = df2.plot.scatter(x='config.pen', y='f1', color='Green',);
+plt.xlabel("Penalization")
+#change name here:
+plt.savefig("results/linearabrupt_complete_f1.png", dpi=150)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -102,6 +148,8 @@ df = analysis.results_df
 
 
 #-------------------------------------------------------------------------
+#testing area here:
+
 
 lin1_abrupt = create_simdata.linear1_abrupt()
 lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)

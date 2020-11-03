@@ -230,7 +230,7 @@ def simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values
         error = np.random.normal(0, sigma, 1)
         new_y = alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  (alpha_3 * list_y[x-1] +  alpha_4 * list_y[x-2])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
         new_y += error[0]
-        print(new_y)
+        #print(new_y)
         list_y.append(new_y)
     del list_y[0:2]    
     return list_y
@@ -251,7 +251,7 @@ def simulate_smooth_transitition_ar_2_incremental(n_obs, sigma_new, sigma_old, s
         error = np.random.normal(0, sigma, 1)
         new_y = alpha_1 * list_y[x-1] +  alpha_2 * list_y[x-2] +  (alpha_3 * list_y[x-1] +  alpha_4 * list_y[x-2])*math.pow(1-math.exp(-10*list_y[x-1]), -1)
         new_y += error[0]
-        print(new_y)
+        #print(new_y)
         list_y.append(new_y)
     del list_y[0:2]    
     return list_y
@@ -340,15 +340,15 @@ def analysis_rbf(penalization, iterations, data_creation_function, size_concepts
         
     
     if  (identified_bkps_total + miss_detected_bkps_total)!=0:
-        miss_detection_rate = miss_detected_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
     else:
         miss_detection_rate = 0
-    detection_rate = identified_bkps_total/(iterations*3)
+    recall = identified_bkps_total/(iterations*3)
     if identified_bkps_total!=0:
         average_delay = delays_score_total/identified_bkps_total
     else:
         average_delay = 0
     
-    return [miss_detection_rate, detection_rate, average_delay]
+    return [precision, recall, average_delay]
 
 

@@ -11,7 +11,7 @@ import pandas as pd
 import functions
 
 def linear1_abrupt():
-    n_obs = 250
+    n_obs = 200
     #Linear 1 - Abrupt
     #Concept 1
     lin1_abrupt = []
@@ -47,7 +47,7 @@ def linear1_abrupt():
     return lin1_abrupt
     
 def linear2_abrupt():
-    n_obs = 250
+    n_obs = 200
     ##########
     #Linear 2 - Abrupt
     #Concept 1
@@ -84,7 +84,7 @@ def linear2_abrupt():
     return lin2_abrupt
 
 def linear3_abrupt():
-    n_obs = 250
+    n_obs = 200
     ##########
     #Linear 3 - Abrupt
     #Concept 1
@@ -253,76 +253,73 @@ def linear3_inc():
     return lin3_inc
 
 def nonlinear1_abrupt():
-    ##########
-    #Nonlinear 1 - Abrupt
-    #Concept 1
-    nonlin1_abrupt = []
-    n_obs=500
-    starting_values = [-0.5, 0.5] #here the errors are the starting values
-    list_alphas = [0.9, -0.2, 0.8, -0.5]
-    sigma = 0.5
-    result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
-    nonlin1_abrupt = result[0]
-    last_errors = result[1][500:]
-    #Concept 2
-    n_obs=500
-    starting_values = last_errors
-    list_alphas = [-0.3, 1.4, 0.4, -0.5]   
-    sigma = 1.5
-    result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
-    nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
-    last_errors = result[1][500:]
-    ##########
-    #Concept 3
-    n_obs=500
-    starting_values = last_errors
-    list_alphas = [1.5, -0.4, -0.3, 0.2]   
-    sigma = 2.5
-    result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
-    nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
-    last_errors = result[1][500:]
-    ##########
-    #Concept 4
-    n_obs=500
-    starting_values = last_errors
-    list_alphas = [-0.1, 1.4, 0.4, -0.7]   
-    sigma = 3.5
-    result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
-    nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
-    last_errors = result[1][500:]
+    try:
+        ##########
+        #Nonlinear 1 - Abrupt
+        #Concept 1
+        n_obs = 200
+        nonlin1_abrupt = []
+        starting_values = [-0.5, 0.5] #here the errors are the starting values
+        list_alphas = [0.9, -0.2, 0.8, -0.5]
+        sigma = 0.5
+        result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
+        nonlin1_abrupt = result[0]
+        last_errors = result[1][n_obs:]
+        #Concept 2
+        starting_values = last_errors
+        list_alphas = [-0.3, 1.4, 0.4, -0.5]   
+        sigma = 1.5
+        result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
+        nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
+        last_errors = result[1][n_obs:]
+        ##########
+        #Concept 3
+        starting_values = last_errors
+        list_alphas = [1.5, -0.4, -0.3, 0.2]   
+        sigma = 2.5
+        result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
+        nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
+        last_errors = result[1][n_obs:]
+        ##########
+        #Concept 4
+        starting_values = last_errors
+        list_alphas = [-0.1, 1.4, 0.4, -0.7]   
+        sigma = 3.5
+        result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
+        nonlin1_abrupt = [*nonlin1_abrupt, *result[0]]
+        last_errors = result[1][n_obs:]
     
-    return nonlin1_abrupt
+        return nonlin1_abrupt
+    except:
+        return nonlin1_abrupt()
     
 def nonlinear2_abrupt():
     try:
         ##########
         #Nonlinear 2 - Abrupt
         #Concept 1
+        n_obs = 200
         nonlin2_abrupt = []
-        n_obs=500
         starting_values = [1, 0.5, 1, 1.2]
         list_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 0.5
         nonlin2_abrupt = functions.simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values)
         #Concept 2
-        n_obs=500
-        starting_values = nonlin2_abrupt[496:]
+        starting_values = nonlin2_abrupt[n_obs-4:]
         list_alphas = [-0.3, 1.4, 0.4, -0.5]   
         sigma = 1.5
         new_data = functions.simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values)
         nonlin2_abrupt = [*nonlin2_abrupt, *new_data]
         ##########
         #Concept 3
-        n_obs=500
-        starting_values = nonlin2_abrupt[996:]
+        starting_values = nonlin2_abrupt[2*n_obs-4:]
         list_alphas = [1.5, -0.4, -0.3, 0.2]   
         sigma = 2.5
         new_data = functions.simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values)
         nonlin2_abrupt = [*nonlin2_abrupt, *new_data]
         ##########
         #Concept 4
-        n_obs=500
-        starting_values = nonlin2_abrupt[1496:]
+        starting_values = nonlin2_abrupt[3*n_obs-4:]
         list_alphas = [-0.1, 1.4, 0.4, -0.7]   
         sigma = 3.5
         new_data = functions.simulate_smooth_transitition_ar(n_obs, sigma, list_alphas, starting_values)
@@ -337,31 +334,28 @@ def nonlinear3_abrupt():
         ##########
         #Nonlinear 3 - Abrupt
         #Concept 1
+        n_obs = 200
         nonlin3_abrupt= []
-        n_obs=500
         starting_values = [0.2, 0.1]
         list_alphas = [0.9, -0.2, 0.8, -0.5]
         sigma = 0.5
         nonlin3_abrupt = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
         #Concept 2
-        n_obs=500
-        starting_values = nonlin3_abrupt[498:]
+        starting_values = nonlin3_abrupt[n_obs-2:]
         list_alphas = [-0.5, 0.4, 1.4, -0.3]   
         sigma = 1.5
         new_data = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
         nonlin3_abrupt = [*nonlin3_abrupt, *new_data]
         ##########
         #Concept 3
-        n_obs=500
-        starting_values = nonlin3_abrupt[998:]
+        starting_values = nonlin3_abrupt[2*n_obs-2:]
         list_alphas = [1.5, -0.4, -0.3, 0.2]  
         sigma = 2.5
         new_data = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
         nonlin3_abrupt = [*nonlin3_abrupt, *new_data]
         ##########
         #Concept 4
-        n_obs=500
-        starting_values = nonlin3_abrupt[1498:]
+        starting_values = nonlin3_abrupt[3*n_obs-2:]
         list_alphas = [-0.7, 0.4, 1.4, -0.1]   
         sigma = 3.5
         new_data = functions.simulate_smooth_transitition_ar_2(n_obs, sigma, list_alphas, starting_values)
