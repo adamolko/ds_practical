@@ -32,6 +32,8 @@ result = functions.analysis_rbf(penalization=30, iterations = 10, data_creation_
 result2 = functions.analysis_rbf(penalization=30, iterations = 10, data_creation_function = create_simdata.nonlinear1_abrupt)
 
 
+result = functions.analysis_linear(penalization=30, iterations = 10, data_creation_function = create_simdata.linear1_abrupt,
+                                    size_concepts = 200, obs_amount_beyond_window=0)
 
 
 
@@ -51,14 +53,16 @@ result2 = functions.analysis_rbf(penalization=30, iterations = 10, data_creation
 # =============================================================================
 
 #switch this, based on what kind of data to use
-list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear2_abrupt]
+list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
 list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
 list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
 list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
 
 
 def objective(pen, function):
-    return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
+    #return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
+    #                            data_creation_function = function, obs_amount_beyond_window=5)
+    return functions.analysis_linear(penalization = pen, iterations = 10, size_concepts=200, 
                                   data_creation_function = function, obs_amount_beyond_window=5)
 
 
@@ -66,7 +70,7 @@ def training_function(config):
     # Hyperparameters
     pen = config["pen"]
     #function = config["datafunction"]
-    function = random.choice(list_data_functions)
+    #function = random.choice(list_data_functions)
 # =============================================================================
 #    Might be able to do something like this for the different datasets
 #    for step in range(10):
@@ -75,11 +79,22 @@ def training_function(config):
 #         # Feed the score back back to Tune.
 #         tune.report(mean_loss=intermediate_score)
 # =============================================================================
-    #for function in list_data_functions:
+    avg_prec = 0;
+    avg_rec = 0;
+    avg_del = 0;
+    for function in list_data_functions:
+        intermediate_result = objective(pen, function)
+        avg_prec += intermediate_result[0]
+        avg_rec +=  intermediate_result[1]
+        avg_del += intermediate_result[2]
+    
+    avg_prec = avg_prec/3
+    avg_rec = avg_rec/3
+    avg_del = avg_del/3
     #function = create_simdata.linear1_abrupt
-    intermediate_result = objective(pen, function)
-    tune.report(precision =  intermediate_result[0],
-            recall = intermediate_result[1], average_delay = intermediate_result[2])
+    #intermediate_result = objective(pen, function)
+    tune.report(precision =  avg_prec,
+            recall = avg_rec, average_delay = avg_del)
  
     #Feed the score back back to Tune.
     
@@ -87,7 +102,7 @@ def training_function(config):
 analysis = tune.run(
     training_function,
     config={
-        "pen": tune.quniform(1, 100, 1),
+        "pen": tune.quniform(0, 500, 1),
         #"datafunction": tune.choice(list_data_functions),
     },
     #num_samples=16,
@@ -103,7 +118,7 @@ df2["f1"].fillna(0, inplace=True)
 
 
 #change name here
-df2.to_pickle("results/result_hyperpara_opt_linear_inc_complete.pkl") 
+df2.to_pickle("results/linear/result_hyperpara_opt_linear_abrupt_200_300.pkl") 
 
 
 #df2 = pd.read_pickle("results/result_hyperpara_opt_linearabrupt_complete.pkl")
@@ -118,15 +133,130 @@ df2.plot.scatter(x='config.pen', y='precision', color='Orange', label='Precision
 plt.xlabel("Penalization")
 plt.ylabel("Rate")
 #change name here:
-plt.savefig("results/linear_inc_complete_recall_vs_prec.png", dpi=150)
-
+#plt.savefig("results/nonlinear_inc_complete_recall_vs_prec.png", dpi=150)
+#plt.savefig("results/linear/linear_abrupt_complete_recall_vs_prec.png", dpi=150)
+plt.savefig("results/linear/linear_abrupt_complete_recall_vs_prec.png", dpi=150)
 #Plot 2:
 
 
 ax = df2.plot.scatter(x='config.pen', y='f1', color='Green',);
 plt.xlabel("Penalization")
 #change name here:
-plt.savefig("results/linear_inc_complete_f1.png", dpi=150)
+#plt.savefig("results/linear/linear_abrupt_complete_f1.png", dpi=150)
+plt.savefig("results/linear/linear_abrupt_complete_f1.png", dpi=150)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Define function for hyperparameter optimization:
+
+
+def hyperparameter_opt(name, list_functions, beyond_window):
+
+    def objective(pen, function):
+        return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
+                                   data_creation_function = function, obs_amount_beyond_window=beyond_window)
+        #return functions.analysis_linear(penalization = pen, iterations = 10, size_concepts=200, 
+           #                           data_creation_function = function, obs_amount_beyond_window=5)
+    
+    
+    def training_function(config):
+        # Hyperparameters
+        pen = config["pen"]
+        avg_prec = 0;
+        avg_rec = 0;
+        avg_del = 0;
+        for function in list_functions:
+            intermediate_result = objective(pen, function)
+            avg_prec += intermediate_result[0]
+            avg_rec +=  intermediate_result[1]
+            avg_del += intermediate_result[2]
+        
+        avg_prec = avg_prec/3
+        avg_rec = avg_rec/3
+        avg_del = avg_del/3
+
+        tune.report(precision =  avg_prec,
+                recall = avg_rec, average_delay = avg_del)
+     
+
+        
+        
+    analysis = tune.run(
+        training_function,
+        config={
+            "pen": tune.quniform(0, 100, 1),
+        },
+        num_samples=100)
+    
+    df2 = analysis.results_df
+
+    #F1 = 2 * (precision * recall) / (precision + recall)
+    df2["f1"] = 2*(df2["precision"]*df2["recall"])/(df2["precision"]+df2["recall"])
+    df2["f1"].fillna(0, inplace=True)
+
+
+    #change name here
+    df2.to_pickle( "results" + name + ".pkg")
+    
+    #Plot 1:
+    ax = df2.plot.scatter(x='config.pen', y='recall', label='Recall', color='Green',);
+    df2.plot.scatter(x='config.pen', y='precision', color='Orange', label='Precision', ax=ax);
+    plt.xlabel("Penalization")
+    plt.ylabel("Rate")
+    plt.savefig( "results" + name + "_recall_vs_prec.png", dpi=150)
+    
+    #Plot 2:
+    ax = df2.plot.scatter(x='config.pen', y='f1', color='Green',);
+    plt.xlabel("Penalization")
+    plt.savefig( "results" + name + "_f1.png", dpi=150)
+    
+
+
+
+
+
+
+list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
+name = "/rbf/result_hyperpara_opt_linear_abrupt_complete"
+beyond_window = 0
+hyperparameter_opt(name, list_data_functions, beyond_window)
+
+list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
+name = "/rbf/result_hyperpara_opt_nonlinear_abrupt_complete"
+beyond_window = 0
+hyperparameter_opt(name, list_data_functions, beyond_window)
+
+list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
+name = "/rbf/result_hyperpara_opt_linear_inc_complete"
+beyond_window = 5
+hyperparameter_opt(name, list_data_functions, beyond_window)
+
+list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
+name = "/rbf/result_hyperpara_opt_nonlinear_inc_complete"
+beyond_window = 5
+hyperparameter_opt(name, list_data_functions, beyond_window)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

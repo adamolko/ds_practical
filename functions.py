@@ -360,6 +360,7 @@ def analysis_linear(penalization, iterations, data_creation_function, size_conce
     for i in range(0, iterations, 1):
         print(i)
         data = data_creation_function()
+        data = pd.DataFrame({"t":data})
         
         #data = preprocess_timeseries(data) #cuts out the first 10 observations
         

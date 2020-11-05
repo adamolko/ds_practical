@@ -353,49 +353,53 @@ def nonlinear3_abrupt():
         return nonlinear3_abrupt()
 
 def nonlinear1_inc():
-    ##########
-    #Nonlinear 1 - Incremental
-    #Concept 1
-    nonlin1_inc = []
-    n_obs=200
-    starting_values = [-0.5, 0.5] #here the errors are the starting values
-    list_alphas = [0.9, -0.2, 0.8, -0.5]
-    sigma = 0.5
-    result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
-    nonlin1_inc = result[0]
-    last_errors = result[1][n_obs:]
-    #Concept 2
-    starting_values = last_errors
-    list_alphas = [-0.3, 1.4, 0.4, -0.5]   
-    list_old_alphas =  [0.9, -0.2, 0.8, -0.5]
-    sigma = 1.5
-    sigma_old = 0.5
-    speed = 20
-    result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
-    nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][n_obs:]
-    ##########
-    #Concept 3
-    starting_values = last_errors
-    list_alphas = [1.5, -0.4, -0.3, 0.2]   
-    list_old_alphas = [-0.3, 1.4, 0.4, -0.5]   
-    sigma = 2.5
-    sigma_old = 1.5
-    result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
-    nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][n_obs:]
-    ##########
-    #Concept 4
-    starting_values = last_errors
-    list_alphas = [-0.1, 1.4, 0.4, -0.7]   
-    list_old_alphas = [1.5, -0.4, -0.3, 0.2]   
-    sigma = 3.5
-    sigma_old = 2.5
-    result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
-    nonlin1_inc = [*nonlin1_inc, *result[0]]
-    last_errors = result[1][n_obs:]
+    try:
+        ##########
+        #Nonlinear 1 - Incremental
+        #Concept 1
+        nonlin1_inc = []
+        n_obs=200
+        starting_values = [-0.5, 0.5] #here the errors are the starting values
+        list_alphas = [0.9, -0.2, 0.8, -0.5]
+        sigma = 0.5
+        result = functions.simulate_non_linear_moving_average(n_obs, sigma, list_alphas, starting_values)
+        nonlin1_inc = result[0]
+        last_errors = result[1][n_obs:]
+        #Concept 2
+        starting_values = last_errors
+        list_alphas = [-0.3, 1.4, 0.4, -0.5]   
+        list_old_alphas =  [0.9, -0.2, 0.8, -0.5]
+        sigma = 1.5
+        sigma_old = 0.5
+        speed = 20
+        result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
+        nonlin1_inc = [*nonlin1_inc, *result[0]]
+        last_errors = result[1][n_obs:]
+        ##########
+        #Concept 3
+        starting_values = last_errors
+        list_alphas = [1.5, -0.4, -0.3, 0.2]   
+        list_old_alphas = [-0.3, 1.4, 0.4, -0.5]   
+        sigma = 2.5
+        sigma_old = 1.5
+        result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
+        nonlin1_inc = [*nonlin1_inc, *result[0]]
+        last_errors = result[1][n_obs:]
+        ##########
+        #Concept 4
+        starting_values = last_errors
+        list_alphas = [-0.1, 1.4, 0.4, -0.7]   
+        list_old_alphas = [1.5, -0.4, -0.3, 0.2]   
+        sigma = 3.5
+        sigma_old = 2.5
+        result = functions.simulate_non_linear_moving_average_incremental(n_obs, sigma, sigma_old, speed,list_alphas, list_old_alphas, starting_values)
+        nonlin1_inc = [*nonlin1_inc, *result[0]]
+        last_errors = result[1][n_obs:]
+        return nonlin1_inc
+    except:
+        return nonlinear1_inc()
     
-    return nonlin1_inc
+    
 def nonlinear2_inc():
     try:
         ##########
@@ -482,5 +486,5 @@ def nonlinear3_inc():
         return nonlin3_inc
     
     except:
-        return nonlinear3_inc
+        return nonlinear3_inc()
     
