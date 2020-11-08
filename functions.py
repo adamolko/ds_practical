@@ -34,6 +34,21 @@ def transform_bkps_to_features(bkps, timeseries):
     series["concept"] = series["concept"].astype("category")
     return series
 
+def ada_preprocessing(timeseries):
+    series = timeseries.copy()
+    
+    series = preprocess_timeseries(series) #cuts out the first 10 observations
+    signal = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                      'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+    algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+    bkps = algo.predict(pen=12)
+    
+    series = series.reset_index(drop=True)
+    series = transform_bkps_to_features(bkps, series)
+    series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept"]]
+    
+    return series
+
 
 def standardize(df):
     result = df.copy()
@@ -288,21 +303,21 @@ def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
 #     range2_result = list(x for x in bkps if 989 <= x <= 1004)
 #     range3_result = list(x for x in bkps if 1489 <= x <= 1504)
 # =============================================================================
-    range1_result = list(x for x in bkps if (size_concepts-11) <= x <= (size_concepts+4+obs_amount_beyond_window ))
-    range2_result = list(x for x in bkps if (2*size_concepts-11) <= x <= (2*size_concepts+4+obs_amount_beyond_window))
-    range3_result = list(x for x in bkps if (3*size_concepts-11) <= x <= (3*size_concepts+4+obs_amount_beyond_window))
+    range1_result = list(x for x in bkps if (size_concepts-10) <= x <= (size_concepts+5+obs_amount_beyond_window ))
+    range2_result = list(x for x in bkps if (2*size_concepts-10) <= x <= (2*size_concepts+5+obs_amount_beyond_window))
+    range3_result = list(x for x in bkps if (3*size_concepts-10) <= x <= (3*size_concepts+5+obs_amount_beyond_window))
     
     if len(range1_result)>=1:
         identified_bkps+=1;
-        delay = range1_result[0] - (size_concepts-11)
+        delay = range1_result[0] - (size_concepts-10)
         list_delays.append(delay)
     if len(range2_result)>=1:
         identified_bkps+=1;
-        delay = range2_result[0] - (2*size_concepts-11)
+        delay = range2_result[0] - (2*size_concepts-10)
         list_delays.append(delay)
     if len(range3_result)>=1:
         identified_bkps+=1;
-        delay = range3_result[0] - (3*size_concepts-11)
+        delay = range3_result[0] - (3*size_concepts-10)
         list_delays.append(delay)
     
     miss_detected_bkps = total_number_bkps - identified_bkps

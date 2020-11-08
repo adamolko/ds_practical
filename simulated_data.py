@@ -160,13 +160,13 @@ plt.savefig("results/linear/linear_abrupt_complete_f1.png", dpi=150)
 #Define function for hyperparameter optimization:
 
 
-def hyperparameter_opt(name, list_functions, beyond_window):
+def hyperparameter_opt(name, list_functions, beyond_window, pen_min, pen_max, rounding):
 
     def objective(pen, function):
-        return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
-                                   data_creation_function = function, obs_amount_beyond_window=beyond_window)
-        #return functions.analysis_linear(penalization = pen, iterations = 10, size_concepts=200, 
-           #                           data_creation_function = function, obs_amount_beyond_window=5)
+        return functions.analysis_rbf(penalization = pen, iterations = 20, size_concepts=200, 
+                                 data_creation_function = function, obs_amount_beyond_window=beyond_window)
+        #return functions.analysis_linear(penalization = pen, iterations = 20, size_concepts=200, 
+                                    # data_creation_function = function, obs_amount_beyond_window=beyond_window)
     
     
     def training_function(config):
@@ -194,7 +194,7 @@ def hyperparameter_opt(name, list_functions, beyond_window):
     analysis = tune.run(
         training_function,
         config={
-            "pen": tune.quniform(0, 100, 1),
+            "pen": tune.quniform(pen_min, pen_max, rounding),
         },
         num_samples=100)
     
@@ -224,28 +224,50 @@ def hyperparameter_opt(name, list_functions, beyond_window):
 
 
 
+#run in one more time between 8 and 14 and then determine best parameter
+
+list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
+name = "/rbf/result_hyperpara_opt_linear_abrupt_5_20"
+beyond_window = 0
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+
+list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
+name = "/rbf/result_hyperpara_opt_nonlinear_abrupt_5_20"
+beyond_window = 0
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+
+list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
+name = "/rbf/result_hyperpara_opt_linear_inc_5_20"
+beyond_window = 5
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+
+list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
+name = "/rbf/result_hyperpara_opt_nonlinear_inc_5_20"
+beyond_window = 5
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+
+
 
 
 list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
-name = "/rbf/result_hyperpara_opt_linear_abrupt_complete"
+name = "/linear/result_hyperpara_opt_linear_abrupt_200_400"
 beyond_window = 0
-hyperparameter_opt(name, list_data_functions, beyond_window)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_max=400, rounding=0.5)
 
 list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
-name = "/rbf/result_hyperpara_opt_nonlinear_abrupt_complete"
+name = "/linear/result_hyperpara_opt_nonlinear_abrupt_200_400"
 beyond_window = 0
-hyperparameter_opt(name, list_data_functions, beyond_window)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_max=400, rounding=0.5)
 
 list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
-name = "/rbf/result_hyperpara_opt_linear_inc_complete"
+name = "/linear/result_hyperpara_opt_linear_inc_200_400"
 beyond_window = 5
-hyperparameter_opt(name, list_data_functions, beyond_window)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_max=400, rounding=0.5)
 
 list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
-name = "/rbf/result_hyperpara_opt_nonlinear_inc_complete"
+name = "/linear/result_hyperpara_opt_nonlinear_inc_200_400"
 beyond_window = 5
-hyperparameter_opt(name, list_data_functions, beyond_window)
-
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_max=400, rounding=0.5)
 
 
 
@@ -295,9 +317,9 @@ series = functions.oscillation_behaviour_in_window(10, series)
 
 
 
+timeseries = create_simdata.linear1_abrupt()
 
-
-
+timeseries = functions.ada_preprocessing(timeseries)
 
 
 
