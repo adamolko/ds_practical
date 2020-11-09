@@ -17,11 +17,14 @@ import ruptures as rpt
 #import ray
 #ray.init()
 
-def transform_bkps_to_features(bkps, timeseries):
+def transform_bkps_to_features(bkps, timeseries, delay_correction = 0):
     series = timeseries.copy()
     list_concepts = []
     count_rows = series.shape[0] 
     current_concept = 1
+    
+    bkps = bkps.copy()
+    bkps = [x-delay_correction for x in bkps]
   
    # for x in range(1, count_rows+1):
     for x in range(0, count_rows):
@@ -34,7 +37,7 @@ def transform_bkps_to_features(bkps, timeseries):
     series["concept"] = series["concept"].astype("category")
     return series
 
-def ada_preprocessing(timeseries):
+def ada_preprocessing(timeseries, delay_correction = 0):
     series = timeseries.copy()
     
     series = preprocess_timeseries(series) #cuts out the first 10 observations
@@ -44,7 +47,7 @@ def ada_preprocessing(timeseries):
     bkps = algo.predict(pen=12)
     
     series = series.reset_index(drop=True)
-    series = transform_bkps_to_features(bkps, series)
+    series = transform_bkps_to_features(bkps, series, delay_correction)
     series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept"]]
     
     return series

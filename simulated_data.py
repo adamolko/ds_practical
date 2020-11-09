@@ -291,7 +291,8 @@ df.loc[df['f1'].idxmax()]
 
 
 
-
+#Next step:
+#run analysis exactly one time with optimal parameter :)
 
 
 
@@ -335,7 +336,7 @@ series = functions.oscillation_behaviour_in_window(10, series)
 
 timeseries = create_simdata.linear1_abrupt()
 
-timeseries = functions.ada_preprocessing(timeseries)
+timeseries = functions.ada_preprocessing(timeseries, delay_correction=2)
 
 
 
