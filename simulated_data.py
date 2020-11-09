@@ -227,24 +227,24 @@ def hyperparameter_opt(name, list_functions, beyond_window, pen_min, pen_max, ro
 #run in one more time between 8 and 14 and then determine best parameter
 
 list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
-name = "/rbf/result_hyperpara_opt_linear_abrupt_5_20"
+name = "/rbf/result_hyperpara_opt_linear_abrupt_8_14"
 beyond_window = 0
-hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=8, pen_max=14, rounding=0.05)
 
 list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
-name = "/rbf/result_hyperpara_opt_nonlinear_abrupt_5_20"
+name = "/rbf/result_hyperpara_opt_nonlinear_abrupt_8_14"
 beyond_window = 0
-hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=8, pen_max=14, rounding=0.05)
 
 list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
-name = "/rbf/result_hyperpara_opt_linear_inc_5_20"
+name = "/rbf/result_hyperpara_opt_linear_inc_8_14"
 beyond_window = 5
-hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=8, pen_max=14, rounding=0.05)
 
 list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
-name = "/rbf/result_hyperpara_opt_nonlinear_inc_5_20"
+name = "/rbf/result_hyperpara_opt_nonlinear_inc_8_14"
 beyond_window = 5
-hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=5, pen_max=20, rounding=0.05)
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=8, pen_max=14, rounding=0.05)
 
 
 
@@ -271,7 +271,23 @@ hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_ma
 
 
 
+#get best hyperparameter:
+df = pd.read_pickle("results/rbf/result_hyperpara_opt_linear_abrupt_8_14.pkg")
+df.loc[df['f1'].idxmax()] 
 
+df = pd.read_pickle("results/rbf/result_hyperpara_opt_linear_inc_8_14.pkg")
+df.loc[df['f1'].idxmax()] 
+
+df = pd.read_pickle("results/rbf/result_hyperpara_opt_nonlinear_abrupt_8_14.pkg")
+df.loc[df['f1'].idxmax()] 
+
+df = pd.read_pickle("results/rbf/result_hyperpara_opt_nonlinear_inc_8_14.pkg")
+df.loc[df['f1'].idxmax()] 
+
+##--> there is no definitive best result, max f1 score is between 11.5 and 13.5
+# Also when looking at plot, there is still quite a lot of variation
+# Might have to run analysis with iteration size a lot larger than 20, but that is just unfeasible
+# therefore a value around 12, should still get us "fine" results
 
 
 

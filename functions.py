@@ -14,7 +14,7 @@ import pandas as pd
 import math
 import create_simdata
 import ruptures as rpt
-import ray
+#import ray
 #ray.init()
 
 def transform_bkps_to_features(bkps, timeseries):
