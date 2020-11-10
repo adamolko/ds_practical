@@ -20,6 +20,7 @@ import ruptures as rpt
 def transform_bkps_to_features(bkps, timeseries, delay_correction = 0):
     series = timeseries.copy()
     list_concepts = []
+    list_transition = []
     count_rows = series.shape[0] 
     current_concept = 1
     
@@ -27,28 +28,41 @@ def transform_bkps_to_features(bkps, timeseries, delay_correction = 0):
     bkps = [x-delay_correction for x in bkps]
   
    # for x in range(1, count_rows+1):
+    transition_count = 11
+    
     for x in range(0, count_rows):
         if (x in bkps): 
             current_concept+=1
+            transition_count = 1
         list_concepts.append(current_concept)
+        if transition_count < 11:
+            list_transition.append(True)
+        if transition_count > 10:
+            list_transition.append(False)
+        transition_count += 1    
 
     
     series["concept"] = list_concepts
     series["concept"] = series["concept"].astype("category")
+    series["transition"] = list_transition
     return series
 
 def ada_preprocessing(timeseries, delay_correction = 0):
     series = timeseries.copy()
     
+    
+    #series = create_simdata.linear1_abrupt()
     series = preprocess_timeseries(series) #cuts out the first 10 observations
     signal = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
     algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
     bkps = algo.predict(pen=12)
+    #print(bkps)
+    bkps = bkps[:-1]
     
     series = series.reset_index(drop=True)
     series = transform_bkps_to_features(bkps, series, delay_correction)
-    series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept"]]
+    series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept", "transition"]]
     
     return series
 
@@ -296,7 +310,8 @@ def preprocess_timeseries(timeseries):
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
 def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
-    bkps = bkps_signal[:-1]
+    bkps = bkps_signal.copy()
+    bkps = bkps[:-1]
     total_number_bkps = len(bkps)
     
     identified_bkps = 0
