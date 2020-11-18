@@ -102,7 +102,7 @@ def partial_autocorrelations_in_window(windowsize, timeseries):
     number_rows = series.shape[0] 
     for i in range(windowsize, number_rows+1, 1):
         window = series.iloc[i-windowsize:i]
-        pacfs = arma_stats.pacf(window["t"], nlags=3)
+        pacfs = arma_stats.pacf(window["t"], nlags=3, method = "ywmle")
         series.loc[i-1,['pacf0','pacf1','pacf2', 'pacf3']] = pacfs
     return series
 
@@ -287,13 +287,13 @@ def simulate_smooth_transitition_ar_2_incremental(n_obs, sigma_new, sigma_old, s
         list_y.append(new_y)
     del list_y[0:2]    
     return list_y
-def preprocess_timeseries(timeseries):
+def preprocess_timeseries(timeseries, windowsize=10):
     series = timeseries.copy()
     series = pd.DataFrame({"t":series})
-    series = autocorrelations_in_window(10, series)
-    series = partial_autocorrelations_in_window(10, series)
-    series = features_in_window(10, series)
-    series = oscillation_behaviour_in_window(10, series)
+    series = autocorrelations_in_window(windowsize, series)
+    series = partial_autocorrelations_in_window(windowsize, series)
+    series = features_in_window(windowsize, series)
+    series = oscillation_behaviour_in_window(windowsize, series)
     lags = pd.concat([series["t"].shift(1), series["t"].shift(2), 
                       series["t"].shift(3),series["t"].shift(4),series["t"].shift(5)], axis=1)
     series["t-1"]= lags.iloc[:,0]
@@ -301,15 +301,16 @@ def preprocess_timeseries(timeseries):
     series["t-3"]= lags.iloc[:,2]
     series["t-4"]= lags.iloc[:,3]
     series["t-5"]= lags.iloc[:,4]
-    series = mutual_info(10, series)
-    series = series[10:]
+    series = mutual_info(windowsize, series)
+    series = series[windowsize:]
     #series = series.reset_index(drop=True)
     stand = standardize(series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']])
     series.loc[:,['pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
-def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
+def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window, windowsize_preproc = 10):
+    #TODO: test indices for bkp, since it gives out a breakpoint for 790?
     bkps = bkps_signal.copy()
     bkps = bkps[:-1]
     total_number_bkps = len(bkps)
@@ -321,21 +322,21 @@ def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
 #     range2_result = list(x for x in bkps if 989 <= x <= 1004)
 #     range3_result = list(x for x in bkps if 1489 <= x <= 1504)
 # =============================================================================
-    range1_result = list(x for x in bkps if (size_concepts-10) <= x <= (size_concepts+5+obs_amount_beyond_window ))
-    range2_result = list(x for x in bkps if (2*size_concepts-10) <= x <= (2*size_concepts+5+obs_amount_beyond_window))
-    range3_result = list(x for x in bkps if (3*size_concepts-10) <= x <= (3*size_concepts+5+obs_amount_beyond_window))
+    range1_result = list(x for x in bkps if (size_concepts-windowsize_preproc) <= x <= (size_concepts - windowsize_preproc + 15 + obs_amount_beyond_window ))
+    range2_result = list(x for x in bkps if (2*size_concepts-windowsize_preproc) <= x <= (2*size_concepts - windowsize_preproc + 15 + obs_amount_beyond_window))
+    range3_result = list(x for x in bkps if (3*size_concepts-windowsize_preproc) <= x <= (3*size_concepts - windowsize_preproc + 15 + obs_amount_beyond_window))
     
     if len(range1_result)>=1:
         identified_bkps+=1;
-        delay = range1_result[0] - (size_concepts-10)
+        delay = range1_result[0] - (size_concepts-windowsize_preproc)
         list_delays.append(delay)
     if len(range2_result)>=1:
         identified_bkps+=1;
-        delay = range2_result[0] - (2*size_concepts-10)
+        delay = range2_result[0] - (2*size_concepts-windowsize_preproc)
         list_delays.append(delay)
     if len(range3_result)>=1:
         identified_bkps+=1;
-        delay = range3_result[0] - (3*size_concepts-10)
+        delay = range3_result[0] - (3*size_concepts-windowsize_preproc)
         list_delays.append(delay)
     
     miss_detected_bkps = total_number_bkps - identified_bkps
@@ -344,7 +345,7 @@ def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window):
     return [identified_bkps, not_detected_bkps, miss_detected_bkps, list_delays]
 
 #@ray.remote
-def analysis_rbf(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window):
+def analysis_rbf(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
     miss_detected_bkps_total = 0
@@ -353,14 +354,14 @@ def analysis_rbf(penalization, iterations, data_creation_function, size_concepts
     for i in range(0, iterations, 1):
         print(i)
         data = data_creation_function()
-        data = preprocess_timeseries(data) #cuts out the first 10 observations
+        data = preprocess_timeseries(data, windowsize_preprocessing) #cuts out the first "windowsize_preprocessing" observations
         signal = data.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
         algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
         bkps = algo.predict(pen=penalization)
     
         
-        result = bkps_stats(bkps, signal, size_concepts, obs_amount_beyond_window)
+        result = bkps_stats(bkps, signal, size_concepts, obs_amount_beyond_window, windowsize_preproc = windowsize_preprocessing)
         identified_bkps = result[0]
         not_detected_bkps = result[1]
         miss_detected_bkps = result[2]
