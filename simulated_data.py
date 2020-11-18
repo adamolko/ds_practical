@@ -160,11 +160,12 @@ plt.savefig("results/linear/linear_abrupt_complete_f1.png", dpi=150)
 #Define function for hyperparameter optimization:
 
 
-def hyperparameter_opt(name, list_functions, beyond_window, pen_min, pen_max, rounding):
+def hyperparameter_opt(name, list_functions, beyond_window, pen_min, pen_max, rounding, window_preprocessing=10):
 
     def objective(pen, function):
-        return functions.analysis_rbf(penalization = pen, iterations = 20, size_concepts=200, 
-                                 data_creation_function = function, obs_amount_beyond_window=beyond_window)
+        return functions.analysis_rbf(penalization = pen, iterations = 10, size_concepts=200, 
+                                 data_creation_function = function, obs_amount_beyond_window=beyond_window,
+                                 windowsize_preprocessing = window_preprocessing)
         #return functions.analysis_linear(penalization = pen, iterations = 20, size_concepts=200, 
                                     # data_creation_function = function, obs_amount_beyond_window=beyond_window)
     
@@ -247,6 +248,37 @@ beyond_window = 5
 hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=8, pen_max=14, rounding=0.05)
 
 
+#try it out with larger window size (25) in preprocessing
+
+list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
+name = "/rbf/window_test/result_hyperpara_opt_linear_abrupt_0_50"
+beyond_window = 10
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=0, pen_max=50, rounding=0.5,
+                   window_preprocessing=20)
+
+list_data_functions = [create_simdata.nonlinear1_abrupt, create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt]
+name = "/rbf/window_test/result_hyperpara_opt_nonlinear_abrupt_0_50"
+beyond_window = 10
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=0, pen_max=50, rounding=0.5,
+                   window_preprocessing=20)
+
+list_data_functions = [create_simdata.linear1_inc, create_simdata.linear2_inc, create_simdata.linear3_inc]
+name = "/rbf/window_test/result_hyperpara_opt_linear_inc_0_50"
+beyond_window = 15
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=0, pen_max=50, rounding=0.5,
+                   window_preprocessing=20)
+
+list_data_functions = [create_simdata.nonlinear1_inc, create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]
+name = "/rbf/window_test/result_hyperpara_opt_nonlinear_inc_0_50"
+beyond_window = 15
+hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=0, pen_max=50, rounding=0.5,
+                   window_preprocessing=20)
+
+
+
+
+
+
 
 
 list_data_functions = [create_simdata.linear1_abrupt, create_simdata.linear2_abrupt, create_simdata.linear3_abrupt]
@@ -272,8 +304,13 @@ hyperparameter_opt(name, list_data_functions, beyond_window, pen_min=200, pen_ma
 
 
 #get best hyperparameter:
-df = pd.read_pickle("results/rbf/result_hyperpara_opt_linear_abrupt_8_14.pkg")
+df = pd.read_pickle("results/rbf/window_test/result_hyperpara_opt_linear_abrupt_0_50.pkg")
 df.loc[df['f1'].idxmax()] 
+
+ax = df.plot.scatter(x='config.pen', y='f1', color='Green',);
+plt.xlabel("Penalization")
+#plt.savefig( "results" + name + "_f1.png", dpi=150)
+
 
 df = pd.read_pickle("results/rbf/result_hyperpara_opt_linear_inc_8_14.pkg")
 df.loc[df['f1'].idxmax()] 
@@ -344,8 +381,8 @@ timeseries = functions.ada_preprocessing(timeseries, delay_correction=2)
 
 
 
-nonlinear2_abrupt = create_simdata.nonlinear3_abrupt()
-nonlinear2_abrupt = functions.preprocess_timeseries(nonlinear2_abrupt)
+nonlinear2_abrupt_raw = create_simdata.nonlinear3_abrupt()
+nonlinear2_abrupt = functions.preprocess_timeseries(nonlinear2_abrupt_raw, windowsize=20)
 
 plt.plot(nonlinear2_abrupt)
 
@@ -356,7 +393,7 @@ signal = nonlinear2_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', '
                                   'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
 
 algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-my_bkps = algo.predict(pen=10)
+my_bkps = algo.predict(pen=18)
 fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
 plt.show()
 
