@@ -17,10 +17,11 @@ import ruptures as rpt
 #import ray
 #ray.init()
 
-def transform_bkps_to_features(bkps, timeseries, delay_correction = 0):
+def transform_bkps_to_features(bkps, timeseries, delay_correction = 0, transition_size = 5):
     series = timeseries.copy()
     list_concepts = []
-    list_transition = []
+    list_transition_forward = []
+    list_transition_backward = []
     count_rows = series.shape[0] 
     current_concept = 1
     
@@ -28,29 +29,57 @@ def transform_bkps_to_features(bkps, timeseries, delay_correction = 0):
     bkps = [x-delay_correction for x in bkps]
   
    # for x in range(1, count_rows+1):
-    transition_count = 11
+    transition_count = transition_size + 1
     
     for x in range(0, count_rows):
         if (x in bkps): 
             current_concept+=1
             transition_count = 1
         list_concepts.append(current_concept)
-        if transition_count < 11:
-            list_transition.append(True)
-        if transition_count > 10:
-            list_transition.append(False)
-        transition_count += 1    
-
+        if transition_count < (transition_size+1):
+            list_transition_forward.append(1)
+        if transition_count > transition_size:
+            list_transition_forward.append(0)
+        transition_count += 1  
+        
+    transition_count = transition_size + 2
     
+    for x in range(count_rows-1, -1, -1):
+        if (x in bkps): 
+            transition_count = 1
+        if transition_count < (transition_size+2):
+            if transition_count == 1:
+                list_transition_backward.append(0)
+            else:
+                list_transition_backward.append(1)
+        if transition_count > (transition_size+1):
+            list_transition_backward.append(0)
+        transition_count += 1 
+    
+    list_transition_backward.reverse()
+    
+
     series["concept"] = list_concepts
     series["concept"] = series["concept"].astype("category")
-    series["transition"] = list_transition
+    
+    #series["transition_forward"] = list_transition_forward
+    #series["transition_backward"] = list_transition_backward
+    #series["transition"] =  list_transition_forward
+    series["transition"] =  np.add(list_transition_forward, list_transition_backward)
+    
     return series
 
-def ada_preprocessing(timeseries, delay_correction = 0):
+def ada_preprocessing(timeseries, delay_correction = 0, transition_size = 5):
+    ''' ada_preprocessing(timeseries, delay_correction = 0)
+     --> timeseries
+     
+    Complete preprocessing for later forecasting.
+    Calculates breakpoints using rbf kernel with optimal parameters.
+    Delay correction specifies, by how much found breakpoints are moved backwards.
+    Transition size specifies, how large the window around the breakpoint should be, in which transition period = 1.
+    Returns timeseries with categorical concept features, transition period feature and steps since/to next breakpoint.
+    '''
     series = timeseries.copy()
-    
-    
     #series = create_simdata.linear1_abrupt()
     series = preprocess_timeseries(series) #cuts out the first 10 observations
     signal = series.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
@@ -61,10 +90,49 @@ def ada_preprocessing(timeseries, delay_correction = 0):
     bkps = bkps[:-1]
     
     series = series.reset_index(drop=True)
-    series = transform_bkps_to_features(bkps, series, delay_correction)
-    series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept", "transition"]]
+    series = transform_bkps_to_features(bkps, series, delay_correction, transition_size)
+    series = steps_to_from_bkps(series, bkps, delay_correction)
+    series = series.loc[:,["t","t-1","t-2","t-3","t-4","t-5","concept", 
+                           "transition", "steps_since_bkp", "steps_to_bkp"]]
     
     return series
+
+def steps_to_from_bkps(timeseries, bkps, delay_correction):
+    ''' steps_to_from_bkps(timeseries, bkps, delay_cprrection)
+     --> timeseries
+     
+    Calculates steps from and to next breakpoint for each observation in timeseries
+    Currently sets the stepnumber for first and last observation resp. to 100 (since 0 is inaccurate). '''
+  
+    series = timeseries.copy()
+    count_rows = series.shape[0] 
+    bkps = bkps.copy()
+    bkps = [x-delay_correction for x in bkps]
+    
+    #Set it to an arbitrary high number, since there is no bkp before
+    counter_since_bkps = 100
+    list_steps_since = []
+    for x in range(0, count_rows):
+        if(x in bkps):
+            counter_since_bkps = 0
+        list_steps_since.append(counter_since_bkps)
+        counter_since_bkps +=1
+    
+    #Set it to an arbitrary high number, since there is no bkp after    
+    counter_to_bkps = 100
+    list_steps_to = []
+    for x in range(count_rows-1, -1, -1):
+        if(x in bkps):
+            counter_to_bkps = 0
+        list_steps_to.append(counter_to_bkps)
+        counter_to_bkps += 1
+    list_steps_to.reverse()
+    
+    series["steps_since_bkp"] = list_steps_since
+    series["steps_to_bkp"] = list_steps_to
+    
+    return series
+    
 
 
 def standardize(df):

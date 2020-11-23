@@ -58,7 +58,8 @@ series2["day_of_week"] = series2["date"].dt.day_name()
 series2 = series2.rename(columns={"time_series_2": "t"})
 
 series_months = series2.groupby(by=["year", "month"],  as_index=False).agg({"t": "sum"})
-
+series_months = series1.groupby(by=["year", "month"],  as_index=False).agg({"t": "sum"})
+plt.plot(series_months)
 
 #lets work with series2 for now
 #get lagged values
