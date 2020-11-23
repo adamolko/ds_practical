@@ -437,4 +437,47 @@ def analysis_linear(penalization, iterations, data_creation_function, size_conce
     
     return [precision, recall, average_delay]
 
+def analysis_l2(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window):
+    identified_bkps_total = 0
+    not_detected_bkps_total = 0
+    miss_detected_bkps_total = 0
+    delays_score_total = 0
+    
+    for i in range(0, iterations, 1):
+        print(i)
+        data = data_creation_function()
+        data = pd.DataFrame({"t":data})
+        
+        #data = preprocess_timeseries(data) #cuts out the first 10 observations
+        
+        data = data[10:]
+
+        signal = data.loc[:,["t"]].to_numpy()
+        algo = rpt.Pelt(model="l2", min_size=2, jump=1).fit(signal)
+        bkps = algo.predict(pen=penalization)
+    
+        result = bkps_stats(bkps, signal, size_concepts, obs_amount_beyond_window)
+        identified_bkps = result[0]
+        not_detected_bkps = result[1]
+        miss_detected_bkps = result[2]
+        list_delays = result[3]
+        
+        identified_bkps_total += identified_bkps
+        not_detected_bkps_total += not_detected_bkps
+        miss_detected_bkps_total += miss_detected_bkps
+        delays_score_total += sum(list_delays)
+        
+    
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        precision = 0
+    recall = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+    
+    return [precision, recall, average_delay]
+
 
