@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import random
+import pickle
 
 import functions
 import create_simdata
@@ -21,7 +22,7 @@ import ray
 ray.init(address='auto', _redis_password='5241590000000000', include_dashboard=False)
 assert ray.is_initialized() == True
 from ray import tune
-#ray.shutdown()
+ray.shutdown()
 
 
 create_simdata.nonlinear3_abrupt()
@@ -365,16 +366,108 @@ df.loc[df['f1'].idxmax()]
 
 
 
+#-------------------------------------------------------
+#Stability Analysis
+
+#--
+#Long term
+penalization = 12
+iterations = 20
+size_concepts = 200
+
+#linear1_abrupt
+data_creation_function = create_simdata.linear1_abrupt
+
+sds_linear1_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/long_term/sds_linear1_abrupt.data', 'wb') as filehandle:
+    pickle.dump(sds_linear1_abrupt, filehandle)
+# with open('results/stability_analysis/long_term/sds_linear1_abrupt.data', 'rb') as filehandle:
+#     sds_linear1_abrupt = pickle.load(filehandle)
+    
+result = functions.stability_analysis_short_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/short_term/linear1_abrupt.data', 'wb') as filehandle:
+    pickle.dump(result, filehandle)
+# with open('results/stability_analysis/short_term/linear1_abrupt.data', 'rb') as filehandle:
+#     result = pickle.load(filehandle)
+    
+#Parallelize this shit:   
+futures1 = [functions.stability_analysis_long_term.remote(penalization = penalization, iterations = iterations, 
+                                                         data_creation_function = i, size_concepts = size_concepts) for i in 
+           [create_simdata.linear2_abrupt, create_simdata.linear3_abrupt, create_simdata.linear1_inc,
+            create_simdata.linear2_inc, create_simdata.linear3_inc, create_simdata.nonlinear1_abrupt,
+            create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt, create_simdata.nonlinear1_inc,
+            create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]]  
+
+result1 = ray.get(futures1)
+with open('results/stability_analysis/long_term/result1.data', 'wb') as filehandle:
+    pickle.dump(result1, filehandle)
+
+futures2 = [functions.stability_analysis_short_term.remote(penalization = penalization, iterations = iterations, 
+                                                         data_creation_function = i, size_concepts = size_concepts) for i in 
+           [create_simdata.linear2_abrupt, create_simdata.linear3_abrupt, create_simdata.linear1_inc,
+            create_simdata.linear2_inc, create_simdata.linear3_inc, create_simdata.nonlinear1_abrupt,
+            create_simdata.nonlinear2_abrupt, create_simdata.nonlinear3_abrupt, create_simdata.nonlinear1_inc,
+            create_simdata.nonlinear2_inc, create_simdata.nonlinear3_inc]]
+    
+result2 = ray.get(futures2)
+with open('results/stability_analysis/short_term/result2.data', 'wb') as filehandle:
+    pickle.dump(result2, filehandle)
+
+# with open('results/stability_analysis/short_term/linear1_abrupt.data', 'rb') as filehandle:
+#     result = pickle.load(filehandle)
+
+ray.get(futures1)
+
+#linear2_abrupt
+data_creation_function = create_simdata.linear2_abrupt
+
+sds_linear2_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/long_term/sds_linear2_abrupt.data', 'wb') as filehandle:
+    pickle.dump(sds_linear2_abrupt, filehandle)
+    
+result = functions.stability_analysis_short_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/short_term/linear2_abrupt.data', 'wb') as filehandle:
+    pickle.dump(result, filehandle)
+  
+#linear3_abrupt
+data_creation_function = create_simdata.linear3_abrupt
+
+sds_linear3_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/long_term/sds_linear3_abrupt.data', 'wb') as filehandle:
+    pickle.dump(sds_linear3_abrupt, filehandle)
+
+result = functions.stability_analysis_short_term(penalization, iterations, data_creation_function, size_concepts)
+with open('results/stability_analysis/short_term/linear3_abrupt.data', 'wb') as filehandle:
+    pickle.dump(result, filehandle)
 
 
+data_creation_function = create_simdata.linear1_inc
+sds_linear1_inc = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.linear2_inc
+sds_linear2_inc = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.linear3_inc
+sds_linear3_inc = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+#nonlinear
+data_creation_function = create_simdata.nonlinear1_abrupt
+sds_nonlinear1_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.nonlinear2_abrupt
+sds_nonlinear2_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.nonlinear3_abrupt
+sds_nonlinear3_abrupt = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.nonlinear1_inc
+sds_nonlinear1_inc = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.nonlinear2_inc
+sds_nonlinear2_inc= functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
+data_creation_function = create_simdata.nonlinear3_inc
+sds_nonlinear3_inc = functions.stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts)
 
 
 
@@ -413,21 +506,48 @@ timeseries = functions.ada_preprocessing(timeseries, delay_correction=2)
 
 
 
-nonlinear2_abrupt_raw = create_simdata.nonlinear3_abrupt()
-nonlinear2_abrupt = functions.preprocess_timeseries(nonlinear2_abrupt_raw, windowsize=20)
+nonlinear2_abrupt_raw = create_simdata.linear2_abrupt()
+nonlinear2_abrupt_raw_2 = nonlinear2_abrupt_raw[0:620]
+nonlinear2_abrupt_raw_3 =  nonlinear2_abrupt_raw[1:650]
+nonlinear2_abrupt_raw_4 =  nonlinear2_abrupt_raw[1:700]
+nonlinear2_abrupt_raw_5 =  nonlinear2_abrupt_raw[1:750]
+nonlinear2_abrupt = functions.preprocess_timeseries(nonlinear2_abrupt_raw, windowsize=10)
+nonlinear2_abrupt_raw_2 = functions.preprocess_timeseries(nonlinear2_abrupt_raw_2, windowsize=10)
+nonlinear2_abrupt_raw_3 = functions.preprocess_timeseries(nonlinear2_abrupt_raw_3, windowsize=10)
+nonlinear2_abrupt_raw_4 = functions.preprocess_timeseries(nonlinear2_abrupt_raw_4, windowsize=10)
+nonlinear2_abrupt_raw_5= functions.preprocess_timeseries(nonlinear2_abrupt_raw_5, windowsize=10)
 
-plt.plot(nonlinear2_abrupt)
+#plt.plot(nonlinear2_abrupt)
 
-lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)
+#lin1_abrupt = functions.preprocess_timeseries(lin1_abrupt)
 
 
 signal = nonlinear2_abrupt.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                   'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
-
 algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
-my_bkps = algo.predict(pen=18)
-fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
-plt.show()
+my_bkps1 = algo.predict(pen=12)
+signal = nonlinear2_abrupt_raw_2.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps2 = algo.predict(pen=12)
+signal = nonlinear2_abrupt_raw_3.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps3 = algo.predict(pen=12)
+signal = nonlinear2_abrupt_raw_4.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps4 = algo.predict(pen=12)
+signal = nonlinear2_abrupt_raw_5.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                  'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+my_bkps5 = algo.predict(pen=12)
+
+
+
+
+#fig, (ax,) = rpt.display(signal[:,0], my_bkps, figsize=(10, 6))
+#plt.show()
 
 
 

@@ -7,14 +7,14 @@ Created on Wed Oct 28 11:41:05 2020
 
 import statsmodels.tsa.stattools as arma_stats
 from scipy.stats import kurtosis, skew
-from statistics import variance
+from statistics import variance, stdev
 from sklearn.feature_selection import mutual_info_regression
 import numpy as np
 import pandas as pd
 import math
 import create_simdata
 import ruptures as rpt
-#import ray
+import ray
 #ray.init()
 
 def transform_bkps_to_features(bkps, timeseries, delay_correction = 0, transition_size = 5):
@@ -70,8 +70,8 @@ def transform_bkps_to_features(bkps, timeseries, delay_correction = 0, transitio
     return series
 
 def ada_preprocessing(timeseries, delay_correction = 0, transition_size = 5):
-    ''' ada_preprocessing(timeseries, delay_correction = 0)
-     --> timeseries
+    ''' --> timeseries
+     
      
     Complete preprocessing for later forecasting.
     Calculates breakpoints using rbf kernel with optimal parameters.
@@ -412,7 +412,6 @@ def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window, win
     
     return [identified_bkps, not_detected_bkps, miss_detected_bkps, list_delays]
 
-#@ray.remote
 def analysis_rbf(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
@@ -548,4 +547,122 @@ def analysis_l2(penalization, iterations, data_creation_function, size_concepts,
     
     return [precision, recall, average_delay]
 
+@ray.remote
+def stability_analysis_long_term(penalization, iterations, data_creation_function, size_concepts , windowsize_preprocessing = 10):
+     # data_creation_function = create_simdata.linear1_abrupt
+     # penalization = 12
+     # iterations = 1
+     # size_concepts = 200
+     # windowsize_preprocessing = 10
+     
+     #size_concepts*2 + 100 - windowsize_preprocessing
+     standard_deviations = []
+     for i in range(0, iterations, 1):
+          print("iteration: ", i)
+          data = data_creation_function()
+          indices_bkp1 =  []
+          indices_bkp2 =  []
+          discard = False
+          for j in range(int(size_concepts*2 + (size_concepts/2)) +50 - 1, (size_concepts*4), 1):
+              print("observation: ", j)
+              temp_data = data[0:j]
+              temp_data = preprocess_timeseries(temp_data, windowsize_preprocessing) #cuts out the first "windowsize_preprocessing" observations
+              
+              signal = temp_data.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                      'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+              algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+              bkps = algo.predict(pen=penalization)
+              
+              bkps = bkps[:-1]
+              filtered_bkps = [bkp for bkp in bkps if bkp < (size_concepts*2 + size_concepts/2) - windowsize_preprocessing]
+    
 
+              
+              if len(filtered_bkps)==2:
+                   indices_bkp1.append(filtered_bkps[0])
+                   indices_bkp2.append(filtered_bkps[1])
+              else:
+                  discard = True
+                  break
+          if discard == False:
+              bkp1_sd = stdev(indices_bkp1)
+              bkp2_sd = stdev(indices_bkp2)
+              standard_deviations.append(bkp1_sd)
+              standard_deviations.append(bkp2_sd)
+     return standard_deviations 
+       
+@ray.remote             
+def stability_analysis_short_term(penalization, iterations, data_creation_function, size_concepts , windowsize_preprocessing = 10):              
+     # data_creation_function = create_simdata.linear1_abrupt
+     # penalization = 12
+     # iterations = 1
+     # size_concepts = 200
+     # windowsize_preprocessing = 10
+     
+    
+    
+     standard_deviations = []
+     delay = []
+     for i in range(0, iterations, 1):
+          print("iteration: ", i)
+          data = data_creation_function()
+          indices_bkp =  []
+          first_bkp = True
+          for j in range(int(size_concepts*3), (size_concepts*4), 1):
+             
+              temp_data = data[0:j]
+              temp_data = preprocess_timeseries(temp_data, windowsize_preprocessing) #cuts out the first "windowsize_preprocessing" observations
+              
+              signal = temp_data.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
+                                      'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
+              algo = rpt.Pelt(model="rbf", min_size=2, jump=1).fit(signal[:,1:])
+              bkps = algo.predict(pen=penalization)
+              
+              bkps = bkps[:-1]
+              filtered_bkps = [bkp for bkp in bkps if bkp >= (size_concepts*3) - windowsize_preprocessing]
+              
+              print("observation: ", j, "   breakpoints: ", len(filtered_bkps))
+
+              
+              if len(filtered_bkps)>=1:
+                   indices_bkp.append(filtered_bkps[0])
+                   if first_bkp:
+                        first_bkp = False
+                        delay.append(j - size_concepts*3)  
+                        print("delay:" , j - size_concepts*3)
+          if len(indices_bkp)>1:
+              bkp_sd = stdev(indices_bkp)
+              standard_deviations.append(bkp_sd)
+          
+     return delay, standard_deviations 
+                  
+              
+          
+          
+          
+          
+          
+          
+          
+          
+
+
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+
+
+
+
+
+         
