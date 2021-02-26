@@ -360,9 +360,192 @@ df.loc[df['f1'].idxmax()]
 # therefore a value around 12, should still get us "fine" results
 
 
+#-------------------------------------------------------
+#Run analysis exactly one with optimal parameter (=12) for each type of dataset
 
-#Next step:
-#run analysis exactly one time with optimal parameter :)
+#define function
+def final_analysis(data_function, name, window_preprocessing=10, iterations=100, pen=12):
+
+    result = functions.analysis_rbf_final(penalization = pen, iterations = iterations, size_concepts=200, 
+                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                             windowsize_preprocessing = window_preprocessing)
+    identified_bkps_total = result[0]
+    not_detected_bkps_total =  result[1]
+    miss_detected_bkps_total = result[2]
+    delays_score_total = result[3]
+
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        precision = 0
+    recall = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+        
+    #F1 = 2 * (precision * recall) / (precision + recall)    
+    f1 = 2*(precision * recall) / (precision + recall) 
+
+    results = [precision, recall, average_delay, f1]
+    with open("results/final/" + name + ".data", 'wb') as filehandle:
+        pickle.dump(results, filehandle)
+    
+#linear ones
+data_function = create_simdata.linear1_abrupt
+name = "linear1_abrupt"
+final_analysis(data_function, name)
+data_function = create_simdata.linear2_abrupt
+name = "linear2_abrupt"
+final_analysis(data_function, name)
+data_function = create_simdata.linear3_abrupt
+name = "linear3_abrupt"
+final_analysis(data_function, name)
+
+#non-linear ones
+data_function = create_simdata.nonlinear1_abrupt
+name = "nonlinear1_abrupt"
+final_analysis(data_function, name)
+data_function = create_simdata.nonlinear2_abrupt
+name = "nonlinear2_abrupt"
+final_analysis(data_function, name)
+data_function = create_simdata.nonlinear3_abrupt
+name = "nonlinear3_abrupt"
+final_analysis(data_function, name)
+
+with open('results/final/linear1_abrupt.data', 'rb') as filehandle:
+    result = pickle.load(filehandle)
+
+###
+#now for linear:
+def final_analysis_linear(data_function, name, window_preprocessing=10, iterations=100, pen=300):
+
+    result = functions.analysis_linear_final(penalization = pen, iterations = iterations, size_concepts=200, 
+                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                             windowsize_preprocessing = window_preprocessing)
+    identified_bkps_total = result[0]
+    not_detected_bkps_total =  result[1]
+    miss_detected_bkps_total = result[2]
+    delays_score_total = result[3]
+
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        precision = 0
+    recall = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+        
+    #F1 = 2 * (precision * recall) / (precision + recall)    
+    f1 = 2*(precision * recall) / (precision + recall) 
+
+    results = [precision, recall, average_delay, f1]
+    with open("results/final/" + name + ".data", 'wb') as filehandle:
+        pickle.dump(results, filehandle)
+    
+#linear ones
+data_function = create_simdata.linear1_abrupt
+name = "linear1_abrupt_linear"
+final_analysis_linear(data_function, name)
+data_function = create_simdata.linear2_abrupt
+name = "linear2_abrupt_linear"
+final_analysis_linear(data_function, name)
+data_function = create_simdata.linear3_abrupt
+name = "linear3_abrupt_linear"
+final_analysis_linear(data_function, name)
+
+#non-linear ones
+data_function = create_simdata.nonlinear1_abrupt
+name = "nonlinear1_abrupt_linear"
+final_analysis_linear(data_function, name)
+data_function = create_simdata.nonlinear2_abrupt
+name = "nonlinear2_abrupt_linear"
+final_analysis_linear(data_function, name)
+data_function = create_simdata.nonlinear3_abrupt
+name = "nonlinear3_abrupt_linear"
+final_analysis_linear(data_function, name)
+
+#####
+#now for l2:
+def final_analysis_l2(data_function, name, window_preprocessing=10, iterations=100, pen=410):
+
+    result = functions.analysis_l2_final(penalization = pen, iterations = iterations, size_concepts=200, 
+                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                             windowsize_preprocessing = window_preprocessing)
+    identified_bkps_total = result[0]
+    not_detected_bkps_total =  result[1]
+    miss_detected_bkps_total = result[2]
+    delays_score_total = result[3]
+
+    if  (identified_bkps_total + miss_detected_bkps_total)!=0:
+        precision = identified_bkps_total/(identified_bkps_total + miss_detected_bkps_total)
+    else:
+        precision = 0
+    recall = identified_bkps_total/(iterations*3)
+    if identified_bkps_total!=0:
+        average_delay = delays_score_total/identified_bkps_total
+    else:
+        average_delay = 0
+        
+    #F1 = 2 * (precision * recall) / (precision + recall)    
+    f1 = 2*(precision * recall) / (precision + recall) 
+
+    results = [precision, recall, average_delay, f1]
+    with open("results/final/" + name + ".data", 'wb') as filehandle:
+        pickle.dump(results, filehandle)
+    
+#linear ones
+data_function = create_simdata.linear1_abrupt
+name = "linear1_abrupt_l2"
+final_analysis_l2(data_function, name)
+data_function = create_simdata.linear2_abrupt
+name = "linear2_abrupt_l2"
+final_analysis_l2(data_function, name)
+data_function = create_simdata.linear3_abrupt
+name = "linear3_abrupt_l2"
+final_analysis_l2(data_function, name)
+
+#non-linear ones
+data_function = create_simdata.nonlinear1_abrupt
+name = "nonlinear1_abrupt_l2"
+final_analysis_l2(data_function, name)
+data_function = create_simdata.nonlinear2_abrupt
+name = "nonlinear2_abrupt_l2"
+final_analysis_l2(data_function, name)
+data_function = create_simdata.nonlinear3_abrupt
+name = "nonlinear3_abrupt_l2"
+final_analysis_l2(data_function, name)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
