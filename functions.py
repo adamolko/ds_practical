@@ -14,6 +14,7 @@ import pandas as pd
 import math
 import create_simdata
 import ruptures as rpt
+import pickle
 import ray
 #ray.init()
 
@@ -453,7 +454,7 @@ def analysis_rbf(penalization, iterations, data_creation_function, size_concepts
     return [precision, recall, average_delay]
 
 
-def analysis_rbf_final(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
+def analysis_rbf_final(penalization, iterations, dataset, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
     miss_detected_bkps_total = 0
@@ -461,7 +462,14 @@ def analysis_rbf_final(penalization, iterations, data_creation_function, size_co
     
     for i in range(0, iterations, 1):
         print(i)
-        data = data_creation_function()
+        #data = data_creation_function()
+        with open("data_final_detection/" + dataset + "_"+ str(i) +".data",  'rb') as filehandle:
+            data = pickle.load(filehandle)
+            
+        #with open("data_final_detection/" + "linear1" + "_"+ str(1) +".data",  'rb') as filehandle:
+#            data = pickle.load(filehandle)
+        
+
         data = preprocess_timeseries(data, windowsize_preprocessing) #cuts out the first "windowsize_preprocessing" observations
         signal = data.loc[:,["t", 'pacf1','pacf2', 'pacf3','acf1','acf2', 'acf3', 'acf4', 'acf5',
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']].to_numpy()
@@ -483,7 +491,7 @@ def analysis_rbf_final(penalization, iterations, data_creation_function, size_co
     
     return [identified_bkps_total, not_detected_bkps_total, miss_detected_bkps_total, delays_score_total]
 
-def analysis_linear_final(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
+def analysis_linear_final(penalization, iterations, dataset, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
     miss_detected_bkps_total = 0
@@ -491,7 +499,8 @@ def analysis_linear_final(penalization, iterations, data_creation_function, size
     
     for i in range(0, iterations, 1):
         print(i)
-        data = data_creation_function()
+        with open("data_final_detection/" + dataset + "_"+ str(i) +".data",  'rb') as filehandle:
+            data = pickle.load(filehandle)
         data = pd.DataFrame({"t":data})
         
         #data = preprocess_timeseries(data) #cuts out the first 10 observations
@@ -525,7 +534,7 @@ def analysis_linear_final(penalization, iterations, data_creation_function, size
     
     return [identified_bkps_total, not_detected_bkps_total, miss_detected_bkps_total, delays_score_total]
 
-def analysis_l2_final(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
+def analysis_l2_final(penalization, iterations, dataset, size_concepts, obs_amount_beyond_window, windowsize_preprocessing = 10):
     identified_bkps_total = 0
     not_detected_bkps_total = 0
     miss_detected_bkps_total = 0
@@ -533,7 +542,8 @@ def analysis_l2_final(penalization, iterations, data_creation_function, size_con
     
     for i in range(0, iterations, 1):
         print(i)
-        data = data_creation_function()
+        with open("data_final_detection/" + dataset + "_"+ str(i) +".data",  'rb') as filehandle:
+            data = pickle.load(filehandle)
         data = pd.DataFrame({"t":data})
         
         #data = preprocess_timeseries(data) #cuts out the first 10 observations
@@ -556,7 +566,27 @@ def analysis_l2_final(penalization, iterations, data_creation_function, size_con
         delays_score_total += sum(list_delays)
         
     return [identified_bkps_total, not_detected_bkps_total, miss_detected_bkps_total, delays_score_total]
-
+def create_final_data():
+    for i in range(0, 100, 1):
+        linear1 = create_simdata.linear1_abrupt()
+        linear2 = create_simdata.linear2_abrupt()
+        linear3 = create_simdata.linear3_abrupt()
+        nonlinear1 = create_simdata.nonlinear1_abrupt()
+        nonlinear2 = create_simdata.nonlinear2_abrupt()
+        nonlinear3 = create_simdata.nonlinear3_abrupt()
+        
+        with open("data_final_detection/" + "linear1_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(linear1, filehandle)
+        with open("data_final_detection/" + "linear2_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(linear2, filehandle)
+        with open("data_final_detection/" + "linear3_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(linear3, filehandle)
+        with open("data_final_detection/" + "nonlinear1_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(nonlinear1, filehandle)
+        with open("data_final_detection/" + "nonlinear2_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(nonlinear2, filehandle) 
+        with open("data_final_detection/" + "nonlinear3_"+ str(i) +".data", 'wb') as filehandle:
+            pickle.dump(nonlinear3, filehandle) 
 def analysis_linear(penalization, iterations, data_creation_function, size_concepts, obs_amount_beyond_window):
     identified_bkps_total = 0
     not_detected_bkps_total = 0

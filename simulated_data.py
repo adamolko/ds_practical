@@ -363,11 +363,15 @@ df.loc[df['f1'].idxmax()]
 #-------------------------------------------------------
 #Run analysis exactly one with optimal parameter (=12) for each type of dataset
 
+
+functions.create_final_data()
+
+
 #define function
-def final_analysis(data_function, name, window_preprocessing=10, iterations=100, pen=12):
+def final_analysis(dataset, name, window_preprocessing=10, iterations=100, pen=12):
 
     result = functions.analysis_rbf_final(penalization = pen, iterations = iterations, size_concepts=200, 
-                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                           dataset = dataset, obs_amount_beyond_window=0,
                              windowsize_preprocessing = window_preprocessing)
     identified_bkps_total = result[0]
     not_detected_bkps_total =  result[1]
@@ -390,38 +394,109 @@ def final_analysis(data_function, name, window_preprocessing=10, iterations=100,
     results = [precision, recall, average_delay, f1]
     with open("results/final/" + name + ".data", 'wb') as filehandle:
         pickle.dump(results, filehandle)
+
     
 #linear ones
-data_function = create_simdata.linear1_abrupt
-name = "linear1_abrupt"
-final_analysis(data_function, name)
-data_function = create_simdata.linear2_abrupt
-name = "linear2_abrupt"
-final_analysis(data_function, name)
-data_function = create_simdata.linear3_abrupt
-name = "linear3_abrupt"
-final_analysis(data_function, name)
+name = "linear1"
+final_analysis(name, name)
+name = "linear2"
+final_analysis(name, name)
+name = "linear3"
+final_analysis(name, name)
 
 #non-linear ones
-data_function = create_simdata.nonlinear1_abrupt
-name = "nonlinear1_abrupt"
-final_analysis(data_function, name)
-data_function = create_simdata.nonlinear2_abrupt
-name = "nonlinear2_abrupt"
-final_analysis(data_function, name)
-data_function = create_simdata.nonlinear3_abrupt
-name = "nonlinear3_abrupt"
-final_analysis(data_function, name)
+name = "nonlinear1"
+final_analysis(name, name)
+name = "nonlinear2"
+final_analysis(name, name)
+name = "nonlinear3"
+final_analysis(name, name)
 
-with open('results/final/linear1_abrupt.data', 'rb') as filehandle:
-    result = pickle.load(filehandle)
+with open('results/final/linear1.data', 'rb') as filehandle:
+    linear1 = pickle.load(filehandle)
+with open('results/final/linear2.data', 'rb') as filehandle:
+    linear2 = pickle.load(filehandle)
+with open('results/final/linear3.data', 'rb') as filehandle:
+    linear3 = pickle.load(filehandle)
+
+with open('results/final/nonlinear1.data', 'rb') as filehandle:
+    nonlinear1 = pickle.load(filehandle)
+with open('results/final/nonlinear2.data', 'rb') as filehandle:
+    nonlinear2 = pickle.load(filehandle)
+with open('results/final/nonlinear3.data', 'rb') as filehandle:
+    nonlinear3 = pickle.load(filehandle)
+
+
+#now for different window sizes of feature:
+
+#linear ones
+name = "linear1_window15" ; dataset="linear1"
+final_analysis(dataset, name, 15)
+name = "linear2_window15"; dataset="linear2"
+final_analysis(dataset, name, 15)
+name = "linear3_window15"; dataset="linear3"
+final_analysis(dataset, name, 15)
+
+#non-linear ones
+name = "nonlinear1_window15"; dataset="nonlinear1"
+final_analysis(dataset, name, 15)
+name = "nonlinear2_window15"; dataset="nonlinear2"
+final_analysis(dataset, name, 15)
+name = "nonlinear3_window15"; dataset="nonlinear3"
+final_analysis(dataset, name, 15)
+
+with open('results/final/linear1_window15.data', 'rb') as filehandle:
+    linear1 = pickle.load(filehandle)
+with open('results/final/linear2_window15.data', 'rb') as filehandle:
+    linear2 = pickle.load(filehandle)
+with open('results/final/linear3_window15.data', 'rb') as filehandle:
+    linear3 = pickle.load(filehandle)
+
+with open('results/final/nonlinear1_window15.data', 'rb') as filehandle:
+    nonlinear1 = pickle.load(filehandle)
+with open('results/final/nonlinear2_window15.data', 'rb') as filehandle:
+    nonlinear2 = pickle.load(filehandle)
+with open('results/final/nonlinear3_window15.data', 'rb') as filehandle:
+    nonlinear3 = pickle.load(filehandle)
+    
+    
+#linear ones
+name = "linear1_window12" ; dataset="linear1"
+final_analysis(dataset, name, 12)
+name = "linear2_window12"; dataset="linear2"
+final_analysis(dataset, name, 12)
+name = "linear3_window12"; dataset="linear3"
+final_analysis(dataset, name, 12)
+
+#non-linear ones
+name = "nonlinear1_window12"; dataset="nonlinear1"
+final_analysis(dataset, name, 12)
+name = "nonlinear2_window12"; dataset="nonlinear2"
+final_analysis(dataset, name, 12)
+name = "nonlinear3_window12"; dataset="nonlinear3"
+final_analysis(dataset, name, 12)
+
+with open('results/final/linear1_window12.data', 'rb') as filehandle:
+    linear1 = pickle.load(filehandle)
+with open('results/final/linear2_window12.data', 'rb') as filehandle:
+    linear2 = pickle.load(filehandle)
+with open('results/final/linear3_window12.data', 'rb') as filehandle:
+    linear3 = pickle.load(filehandle)
+
+with open('results/final/nonlinear1_window12.data', 'rb') as filehandle:
+    nonlinear1 = pickle.load(filehandle)
+with open('results/final/nonlinear2_window12.data', 'rb') as filehandle:
+    nonlinear2 = pickle.load(filehandle)
+with open('results/final/nonlinear3_window12.data', 'rb') as filehandle:
+    nonlinear3 = pickle.load(filehandle)
+    
 
 ###
 #now for linear:
-def final_analysis_linear(data_function, name, window_preprocessing=10, iterations=100, pen=300):
+def final_analysis_linear(dataset, name, window_preprocessing=10, iterations=100, pen=300):
 
     result = functions.analysis_linear_final(penalization = pen, iterations = iterations, size_concepts=200, 
-                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                           dataset = dataset, obs_amount_beyond_window=0,
                              windowsize_preprocessing = window_preprocessing)
     identified_bkps_total = result[0]
     not_detected_bkps_total =  result[1]
@@ -442,37 +517,45 @@ def final_analysis_linear(data_function, name, window_preprocessing=10, iteratio
     f1 = 2*(precision * recall) / (precision + recall) 
 
     results = [precision, recall, average_delay, f1]
-    with open("results/final/" + name + ".data", 'wb') as filehandle:
+    with open("results/final_linear/" + name + ".data", 'wb') as filehandle:
         pickle.dump(results, filehandle)
     
 #linear ones
-data_function = create_simdata.linear1_abrupt
-name = "linear1_abrupt_linear"
-final_analysis_linear(data_function, name)
-data_function = create_simdata.linear2_abrupt
-name = "linear2_abrupt_linear"
-final_analysis_linear(data_function, name)
-data_function = create_simdata.linear3_abrupt
-name = "linear3_abrupt_linear"
-final_analysis_linear(data_function, name)
+name = "linear1"
+final_analysis_linear(name, name)
+name = "linear2"
+final_analysis_linear(name, name)
+name = "linear3"
+final_analysis_linear(name, name)
 
 #non-linear ones
-data_function = create_simdata.nonlinear1_abrupt
-name = "nonlinear1_abrupt_linear"
-final_analysis_linear(data_function, name)
-data_function = create_simdata.nonlinear2_abrupt
-name = "nonlinear2_abrupt_linear"
-final_analysis_linear(data_function, name)
-data_function = create_simdata.nonlinear3_abrupt
-name = "nonlinear3_abrupt_linear"
-final_analysis_linear(data_function, name)
+name = "nonlinear1"
+final_analysis_linear(name, name)
+name = "nonlinear2"
+final_analysis_linear(name, name)
+name = "nonlinear3"
+final_analysis_linear(name, name)
+
+with open('results/final_linear/linear1.data', 'rb') as filehandle:
+    linear1 = pickle.load(filehandle)
+with open('results/final_linear/linear2.data', 'rb') as filehandle:
+    linear2 = pickle.load(filehandle)
+with open('results/final_linear/linear3.data', 'rb') as filehandle:
+    linear3 = pickle.load(filehandle)
+
+with open('results/final_linear/nonlinear1.data', 'rb') as filehandle:
+    nonlinear1 = pickle.load(filehandle)
+with open('results/final_linear/nonlinear2.data', 'rb') as filehandle:
+    nonlinear2 = pickle.load(filehandle)
+with open('results/final_linear/nonlinear3.data', 'rb') as filehandle:
+    nonlinear3 = pickle.load(filehandle)
 
 #####
 #now for l2:
-def final_analysis_l2(data_function, name, window_preprocessing=10, iterations=100, pen=410):
+def final_analysis_l2(dataset, name, window_preprocessing=10, iterations=100, pen=410):
 
     result = functions.analysis_l2_final(penalization = pen, iterations = iterations, size_concepts=200, 
-                           data_creation_function = data_function, obs_amount_beyond_window=0,
+                            dataset = dataset,  obs_amount_beyond_window=0,
                              windowsize_preprocessing = window_preprocessing)
     identified_bkps_total = result[0]
     not_detected_bkps_total =  result[1]
@@ -493,32 +576,39 @@ def final_analysis_l2(data_function, name, window_preprocessing=10, iterations=1
     f1 = 2*(precision * recall) / (precision + recall) 
 
     results = [precision, recall, average_delay, f1]
-    with open("results/final/" + name + ".data", 'wb') as filehandle:
+    with open("results/final_l2/" + name + ".data", 'wb') as filehandle:
         pickle.dump(results, filehandle)
     
 #linear ones
-data_function = create_simdata.linear1_abrupt
-name = "linear1_abrupt_l2"
-final_analysis_l2(data_function, name)
-data_function = create_simdata.linear2_abrupt
-name = "linear2_abrupt_l2"
-final_analysis_l2(data_function, name)
-data_function = create_simdata.linear3_abrupt
-name = "linear3_abrupt_l2"
-final_analysis_l2(data_function, name)
+name = "linear1"
+final_analysis_l2(name, name)
+name = "linear2"
+final_analysis_l2(name, name)
+name = "linear3"
+final_analysis_l2(name, name)
 
 #non-linear ones
-data_function = create_simdata.nonlinear1_abrupt
-name = "nonlinear1_abrupt_l2"
-final_analysis_l2(data_function, name)
-data_function = create_simdata.nonlinear2_abrupt
-name = "nonlinear2_abrupt_l2"
-final_analysis_l2(data_function, name)
-data_function = create_simdata.nonlinear3_abrupt
-name = "nonlinear3_abrupt_l2"
-final_analysis_l2(data_function, name)
+name = "nonlinear1"
+final_analysis_l2(name, name)
+name = "nonlinear2"
+final_analysis_l2(name, name)
+name = "nonlinear3"
+final_analysis_l2(name, name)
 
 
+with open('results/final_l2/linear1.data', 'rb') as filehandle:
+    linear1 = pickle.load(filehandle)
+with open('results/final_l2/linear2.data', 'rb') as filehandle:
+    linear2 = pickle.load(filehandle)
+with open('results/final_l2/linear3.data', 'rb') as filehandle:
+    linear3 = pickle.load(filehandle)
+
+with open('results/final_l2/nonlinear1.data', 'rb') as filehandle:
+    nonlinear1 = pickle.load(filehandle)
+with open('results/final_l2/nonlinear2.data', 'rb') as filehandle:
+    nonlinear2 = pickle.load(filehandle)
+with open('results/final_l2/nonlinear3.data', 'rb') as filehandle:
+    nonlinear3 = pickle.load(filehandle)
 
 
 
