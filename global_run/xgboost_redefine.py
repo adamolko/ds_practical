@@ -35,6 +35,7 @@ def manual_preprocessing(values, pattern):
 	return df
 
 def xgboost_forecast(train, test_X):
+	print("xgboost with redefine is alive")
 	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
 
 	model = XGBRegressor(objective = 'reg:squarederror', n_estimators = 100, random_state = 40)
@@ -59,13 +60,13 @@ def one_hot_encoding(data):
 	return data
 
 
-def plot_save(predictions, actual, bkp, name):
+def plot_save(predictions, actual, bkp, path):
 	plt.plot(actual, label = "Expected", color = "black")
 	plt.plot(predictions, label = "Predicted", color = "red")
 	plt.legend()
 
 	#saving the plots
-	image_path = name+".png"
+	image_path = path+".png"
 	plt.savefig(image_path)
 
 
@@ -77,10 +78,10 @@ def plot_save(predictions, actual, bkp, name):
 	plt.vlines(x = bkps, ymin = actual.min(), ymax = actual.max(), 
 		linestyles = "dashed", color = "deepskyblue", label = "Breakpoints")
 	plt.legend()
-	image_path = name+"_breakpoints.png"
+	image_path = path+"_breakpoints.png"
 	plt.savefig(image_path)
 	plt.clf()
-	bkp_path = name+"_breakpoints.txt"
+	bkp_path = path+"_breakpoints.txt"
 	with open(bkp_path, 'w') as file:
 		file.write(json.dumps("".join([str(j) for j in bkps])))
 
@@ -134,7 +135,7 @@ def main(iteration):
 		error = smape(np.asarray(predictions), np.asarray(ground_truth))
 		smape_dict[name] = error
 		#     print("SMAPE: {:.4f}".format(error))
-		plot_save(predictions, ground_truth, bkp, "results/xgboost/refedine/"+name)
+		plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name)
 
 	dict_path = "results/xgboost/redefine/errors/error"+str(iteration)+".txt"
 	with open(dict_path, 'w') as file:

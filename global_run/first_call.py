@@ -17,7 +17,7 @@ if __name__ == '__main__':
     list_of_functions = [baseline.main, xgboost_retrain.main, 
         xgboost_redefine.main, xgboost_discard.main, lstm_tuning.main]
 
-    for fun in list_of_functions:
+    for fun in list_of_functions[2:]:
         p = multiprocessing.Process(target=fun, args=(iteration,))
         processes.append(p)
         p.start()

@@ -71,6 +71,7 @@ def main(iteration):
 			for n_neuron in n_neurons:
 				for n_epoch in n_epochs:
 					#fit the model just once
+					print("lstm tuning is alive")
 					model = fit_lstm(train, n_neuron, n_epoch, n_batch, optimizer)
 
 					#get predictions for new test observation

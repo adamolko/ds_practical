@@ -46,7 +46,7 @@ def walk_forward_validation(train, test):
 
 def xgboost_forecast(train, test_X):
 	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
-
+	print("xgboost with retrain is alive")
 	model = XGBRegressor(objective = 'reg:squarederror', n_estimators = 100, random_state = 40)
 	model.fit(train_X, train_y)
 	yhat = model.predict(test_X)
@@ -62,6 +62,7 @@ def main(iteration):
 
 	for name in list_of_names:
 		#loading the data
+		#print("xgboost with retrain is alive")
 		data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
 		#note: i only use this to get the lagged values, the concepts and others are dropped subsequently

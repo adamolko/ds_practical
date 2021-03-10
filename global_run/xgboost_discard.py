@@ -16,6 +16,7 @@ def smape(predictions, actual):
 	return error
 
 def xgboost_forecast(train, test_X):
+	print("xgboost with discard is alive")
 	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
 
 	model = XGBRegressor(objective = 'reg:squarederror', n_estimators = 100, random_state = 40)
