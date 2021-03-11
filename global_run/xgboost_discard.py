@@ -56,7 +56,7 @@ def plot_save(predictions, actual, bkp, name):
 	for i in bkp.unique()[1:]:
 		bkps.append(np.where(bkp == i)[0][0])
 	#     print(bkps)
-	plt.vlines(x = bkps, ymin = actual.min(), ymax = actual.max(), 
+	plt.vlines(x = bkps, ymin = min(actual), ymax = max(actual), 
 		linestyles = "dashed", color = "deepskyblue", label = "Breakpoints")
 	plt.legend()
 	image_path = name+"_breakpoints.png"
@@ -66,63 +66,61 @@ def plot_save(predictions, actual, bkp, name):
 	with open(bkp_path, 'w') as file:
 		file.write(json.dumps("".join([str(j) for j in bkps])))
 
-def main(iteration):
-	print("xgboost with retrain is running")
-	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt",
-	"nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
+def main(iteration, name):
 
 	smape_dict = {}
 
-	for name in list_of_names:
-		print("hey there, i'm running xgboost with discard")
-		start = time.perf_counter()
+	print("hey there, i'm running xgboost with discard")
+	start = time.perf_counter()
 
-		#loading the data
-		data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
+	#loading the data
+	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
-		#70/30 train/test split
-		split = int(0.7*len(data))
-		train, test = data[:split], data[split:]
+	#70/30 train/test split
+	split = int(0.7*len(data))
+	train, test = data[:split], data[split:]
 
-		#get breakpoints for train set
+	#get breakpoints for train set
+	history = functions.ada_preprocessing(train)
+
+	#note the last concept that appeared
+	last_num_concepts = max(list(history["concept"]))
+
+	predictions = []
+	ground_truth = []
+	points = 0
+	bkp = None
+	for i in range(len(test)):
+		#add new test observation to train series
+		train.append(test[i])
+
+		#pass all the values available in series up to and including the new test point
+		test_df = manual_preprocessing(train)
+
+		ground_truth.append(train[-1])
+
+		#training data = history
+		prediction = xgboost_forecast(history.loc[:,"t":"t-5"], test_df.loc[:,"t-1":"t-5"])
+		predictions.append(prediction)
+
+		#new dataframe with the predicted test observation already appended
 		history = functions.ada_preprocessing(train)
+		if i == len(test)-1:
+			bkp = history["concept"]
 
-		#note the last concept that appeared
-		last_num_concepts = max(list(history["concept"]))
+		#note the real concept for the test observation
+		new_num_concepts = max(list(history["concept"]))
 
-		predictions = []
-		ground_truth = []
-		points = 0
-		for i in range(len(test)):
-			#add new test observation to train series
-			train.append(test[i])
+		#if the number of concepts change, check if we have enough datapoints for new concept
+		if new_num_concepts>last_num_concepts:
+			#if we have more than 20 points for new concept, keep them and drop the rest of the data
+			points = is_enough(history)
+		if points>=20:
+			history = history.tail(points)
+			last_num_concepts = new_num_concepts
+			points = 0
+			#otherwise just keep using the same dataset
 
-			#pass all the values available in series up to and including the new test point
-			test_df = manual_preprocessing(train)
-
-			ground_truth.append(train[-1])
-
-			#training data = history
-			prediction = xgboost_forecast(history.loc[:,"t":"t-5"], test_df.loc[:,"t-1":"t-5"])
-			predictions.append(prediction)
-
-			#new dataframe with the predicted test observation already appended
-			history = functions.ada_preprocessing(train)
-
-			#note the real concept for the test observation
-			new_num_concepts = max(list(history["concept"]))
-
-			#if the number of concepts change, check if we have enough datapoints for new concept
-			if new_num_concepts>last_num_concepts:
-				#if we have more than 20 points for new concept, keep them and drop the rest of the data
-				points = is_enough(history)
-			if points>=20:
-				history = history.tail(points)
-				last_num_concepts = new_num_concepts
-				points = 0
-				#otherwise just keep using the same dataset
-
-	        
 	end = time.perf_counter()
 	print("Time wasted on xgboost with discard: {:.2f}m".format((end-start)/60))
 
@@ -131,8 +129,8 @@ def main(iteration):
 	# print("SMAPE: {:.4f}".format(error))
 	plot_save(predictions, ground_truth, bkp, "results/xgboost/discard/"+name)
 
-    
-	dict_path = "results/xgboost/discard/errors/error"+str(iteration)+".txt"
+
+	dict_path = "results/xgboost/discard/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
 		for key in smape_dict.keys():
 			file.write("%s,%s\n"%(key,smape_dict[key]))

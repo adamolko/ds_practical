@@ -14,16 +14,14 @@ if __name__ == '__main__':
     iteration = 0
     # starttime = time.time()
     processes = []
-    list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
+    #list_of_functions = [baseline.main, xgboost_retrain.main, 
+     #   xgboost_redefine.main, lstm_tuning.main, xgboost_discard.main]
+    list_of_names = ["linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
     for name in list_of_names:
-        p = multiprocessing.Process(target=xgboost_discard.main, args=(iteration,name, ))
+        p = multiprocessing.Process(target=xgboost_redefine.main, args=(iteration,))
         processes.append(p)
         p.start()
-    
-    p = multiprocessing.Process(target = lstm_tuning.main, args = (iteration,))
-    processes.append(p)
-    p.start()
 
     for process in processes:
         process.join()

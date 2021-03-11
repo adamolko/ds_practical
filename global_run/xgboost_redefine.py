@@ -75,7 +75,7 @@ def plot_save(predictions, actual, bkp, path):
 	for i in bkp.unique()[1:]:
 		bkps.append(np.where(bkp == i)[0][0])
 	#     print(bkps)
-	plt.vlines(x = bkps, ymin = actual.min(), ymax = actual.max(), 
+	plt.vlines(x = bkps, ymin = min(actual), ymax = max(actual), 
 		linestyles = "dashed", color = "deepskyblue", label = "Breakpoints")
 	plt.legend()
 	image_path = path+"_breakpoints.png"
@@ -85,59 +85,56 @@ def plot_save(predictions, actual, bkp, path):
 	with open(bkp_path, 'w') as file:
 		file.write(json.dumps("".join([str(j) for j in bkps])))
 
-def main(iteration):
-	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt",
-	"nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
+def main(iteration, name):
 
 	smape_dict = {}
 
-	for name in list_of_names:
-		print("xgboost with redefine is running")
-		start = time.perf_counter()
+	print("xgboost with redefine is running")
+	start = time.perf_counter()
 
-		#loading the data
-		data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
+	#loading the data
+	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
-		#70/30 train/test split
-		split = int(0.7*len(data))
-		train, test = data[:split], data[split:]
+	#70/30 train/test split
+	split = int(0.7*len(data))
+	train, test = data[:split], data[split:]
 
-		predictions = []
-		ground_truth = []
+	predictions = []
+	ground_truth = []
 
-		for i in range(len(test)):
-		#get breakpoints for train
-			history = functions.ada_preprocessing(train)
+	for i in range(len(test)):
+	#get breakpoints for train
+		history = functions.ada_preprocessing(train)
 
-			#save the final set of breakpoints
-			bkp = None
-			if i == len(test)-1:
-				bkp = history["concept"]
+		#save the final set of breakpoints
+		bkp = None
+		if i == len(test)-1:
+			bkp = history["concept"]
 
-			history = one_hot_encoding(history)
+		history = one_hot_encoding(history)
 
-			#add new test observation to train series
-			train.append(test[i])
+		#add new test observation to train series
+		train.append(test[i])
 
-			#path the last point from history dataframe to then extract same concept dummies
-			test_df = manual_preprocessing(train, history.tail(1))
+		#path the last point from history dataframe to then extract same concept dummies
+		test_df = manual_preprocessing(train, history.tail(1))
 
-			ground_truth.append(train[-1])
+		ground_truth.append(train[-1])
 
-			#training data = history
-			prediction = xgboost_forecast(history, test_df.loc[:,"t-1":])
-			predictions.append(prediction)
+		#training data = history
+		prediction = xgboost_forecast(history, test_df.loc[:,"t-1":])
+		predictions.append(prediction)
 
 
-		end = time.perf_counter()
-		print("Time wasted on xgboost with retrain: {:.2f}m".format((end-start)/60))
+	end = time.perf_counter()
+	print("Time wasted on xgboost with retrain: {:.2f}m".format((end-start)/60))
 
-		error = smape(np.asarray(predictions), np.asarray(ground_truth))
-		smape_dict[name] = error
-		#     print("SMAPE: {:.4f}".format(error))
-		plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name)
+	error = smape(np.asarray(predictions), np.asarray(ground_truth))
+	smape_dict[name] = error
+	#     print("SMAPE: {:.4f}".format(error))
+	plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name)
 
-	dict_path = "results/xgboost/redefine/errors/error"+str(iteration)+".txt"
+	dict_path = "results/xgboost/redefine/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
 		for key in smape_dict.keys():
 			file.write("%s,%s\n"%(key,smape_dict[key]))
