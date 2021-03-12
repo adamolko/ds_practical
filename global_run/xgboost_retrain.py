@@ -53,44 +53,40 @@ def xgboost_forecast(train, test_X):
 
 	return yhat[0]
 
-def main(iteration):
+def main(iteration, name):
 	print("xgboost with retrain is running")
-	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt",
-	"nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
-
+	
 	smape_dict = {}
+	#loading the data
+	#print("xgboost with retrain is alive")
+	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
-	for name in list_of_names:
-		#loading the data
-		#print("xgboost with retrain is alive")
-		data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
+	#note: i only use this to get the lagged values, the concepts and others are dropped subsequently
+	data = functions.ada_preprocessing(data)
+	data = data.loc[:, "t":"t-5"]
 
-		#note: i only use this to get the lagged values, the concepts and others are dropped subsequently
-		data = functions.ada_preprocessing(data)
-		data = data.loc[:, "t":"t-5"]
+	#train/test split
+	n = len(data)
+	train, test = data[:int(0.7*n)], data[int(0.7*n):]    
 
-		#train/test split
-		n = len(data)
-		train, test = data[:int(0.7*n)], data[int(0.7*n):]    
+	#fitting and plotting with concept
+	start = time.perf_counter()
+	error, y, yhat = walk_forward_validation(train, test)
+	end = time.perf_counter()
+	print("Time wasted on xgboost with retrain: {:.2f}s".format((end-start)))
 
-		#fitting and plotting with concept
-		start = time.perf_counter()
-		error, y, yhat = walk_forward_validation(train, test)
-		end = time.perf_counter()
-		print("Time wasted on xgboost with retrain: {:.2f}s".format((end-start)))
+	smape_dict[name] = error
+	# print("SMAPE: {:.4f}".format(error))
+	#plt.plot(y, label = "Expected", color = "black")
+	#plt.plot(yhat, label = "Predicted", color = "red")
+	#plt.legend()
+	#plt.title(name)
 
-		smape_dict[name] = error
-		# print("SMAPE: {:.4f}".format(error))
-		plt.plot(y, label = "Expected", color = "black")
-		plt.plot(yhat, label = "Predicted", color = "red")
-		plt.legend()
-		plt.title(name)
-
-		#saving the plots
-		image_path = "results/xgboost/retrain/"+name+".png"
-		plt.savefig(image_path)
-		plt.clf()
-		# plt.show()
+	#saving the plots
+	#image_path = "results/xgboost/retrain/"+name+".png"
+	#plt.savefig(image_path)
+	#plt.clf()
+	# plt.show()
 
 	#saving the dictionary containing errors
 	dict_path = "results/xgboost/retrain/errors/error"+str(iteration)+".txt"

@@ -133,7 +133,7 @@ def main(iteration, name):
 	error = smape(np.asarray(predictions), np.asarray(ground_truth))
 	smape_dict[name] = error
 	#     print("SMAPE: {:.4f}".format(error))
-	plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name, setback)
+	#plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name, setback)
 
 	dict_path = "results/xgboost/redefine/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
