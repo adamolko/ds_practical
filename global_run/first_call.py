@@ -12,14 +12,15 @@ import lstm_tuning
 
 if __name__ == '__main__':
     iteration = 0
-    # starttime = time.time()
     processes = []
+    list_of_functions = [xgboost_redefine.main, xgboost_discard, lstm_tuning.main]
     list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
-    for name in list_of_names:
-        p = multiprocessing.Process(target=xgboost_discard.main, args=(iteration,name, ))
-        processes.append(p)
-        p.start()
+    for fun in list_of_functions[:-1]:
+        for name in list_of_names:
+            p = multiprocessing.Process(target=fun, args=(iteration,name, ))
+            processes.append(p)
+            p.start()
     
     p = multiprocessing.Process(target = lstm_tuning.main, args = (iteration,))
     processes.append(p)

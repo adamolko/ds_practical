@@ -21,38 +21,35 @@ def baseline_predict(train, test):
 
     return predictions
 
-def main(iteration):
+def main(iteration, name):
     print("i'm doing baseline bitch")
-    list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt",
-        "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
     smape_dict = {}
 
-    for name in list_of_names:
-        data = pd.read_csv("data/"+name, usecols = [iteration])
-        split = int(0.7*len(data))
-        train, test = data.loc[:split, :], data.loc[split:, :]
-        ground_truth = data.iloc[int(0.7*len(data)):, 0].reset_index(drop = True)
+    data = pd.read_csv("data/"+name, usecols = [iteration])
+    split = int(0.7*len(data))
+    train, test = data.loc[:split, :], data.loc[split:, :]
+    ground_truth = data.iloc[int(0.7*len(data)):, 0].reset_index(drop = True)
 
-        predictions = baseline_predict(train, test)
+    predictions = baseline_predict(train, test)
 
 
-        error = smape(predictions, ground_truth.values.reshape([-1,1]))
-        smape_dict[name] = error
-        print("SMAPE: {:.4f}".format(error))
+    error = smape(predictions, ground_truth.values.reshape([-1,1]))
+    smape_dict[name] = error
+    print("SMAPE: {:.4f}".format(error))
 
-        plt.plot(ground_truth, label = "expected", color = "black")
-        plt.plot(predictions, label = "predicted", color = "red")
-        plt.title(name)
-        plt.legend()    
+    plt.plot(ground_truth, label = "expected", color = "black")
+    plt.plot(predictions, label = "predicted", color = "red")
+    plt.title(name)
+    plt.legend()    
 
-        #saving the plots
-        image_path = "results/baseline/"+name+".png"
-        plt.savefig(image_path)
-        plt.close()
+    #saving the plots
+    image_path = "results/baseline/"+name+".png"
+    plt.savefig(image_path)
+    plt.close()
 
     #saving the dictionary containing errors
-    dict_path = "results/baseline/errors/error_"+str(iteration)+".txt"
+    dict_path = "results/baseline/errors/error"+str(iteration)+name+".txt"
     with open(dict_path, 'w') as file:
         for key in smape_dict.keys():
             file.write("%s,%s\n"%(key,smape_dict[key]))

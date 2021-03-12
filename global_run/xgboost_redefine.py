@@ -60,7 +60,7 @@ def one_hot_encoding(data):
 	return data
 
 
-def plot_save(predictions, actual, bkp, path):
+def plot_save(predictions, actual, bkp, path, setback):
 	plt.plot(actual, label = "Expected", color = "black")
 	plt.plot(predictions, label = "Predicted", color = "red")
 	plt.legend()
@@ -74,8 +74,8 @@ def plot_save(predictions, actual, bkp, path):
 	bkps = []
 	for i in bkp.unique()[1:]:
 		bkps.append(np.where(bkp == i)[0][0])
-	#     print(bkps)
-	plt.vlines(x = bkps, ymin = min(actual), ymax = max(actual), 
+	plot_bkps = [i-setback for i in bkps if i-setback>0]
+	plt.vlines(x = plot_bkps, ymin = min(actual), ymax = max(actual), 
 		linestyles = "dashed", color = "deepskyblue", label = "Breakpoints")
 	plt.legend()
 	image_path = path+"_breakpoints.png"
@@ -83,7 +83,7 @@ def plot_save(predictions, actual, bkp, path):
 	plt.clf()
 	bkp_path = path+"_breakpoints.txt"
 	with open(bkp_path, 'w') as file:
-		file.write(json.dumps("".join([str(j) for j in bkps])))
+		file.write(json.dumps(",".join([str(j) for j in bkps])))
 
 def main(iteration, name):
 
@@ -98,6 +98,7 @@ def main(iteration, name):
 	#70/30 train/test split
 	split = int(0.7*len(data))
 	train, test = data[:split], data[split:]
+	setback = len(train)
 
 	predictions = []
 	ground_truth = []
@@ -132,7 +133,7 @@ def main(iteration, name):
 	error = smape(np.asarray(predictions), np.asarray(ground_truth))
 	smape_dict[name] = error
 	#     print("SMAPE: {:.4f}".format(error))
-	plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name)
+	plot_save(predictions, ground_truth, bkp, "results/xgboost/redefine/"+name, setback)
 
 	dict_path = "results/xgboost/redefine/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:

@@ -58,8 +58,8 @@ def main(iteration):
 	test_X = np.hstack(X_arrays).reshape(X_test.shape[0], 1, X_test.shape[1])
 
 	optimizers = ["adam", "adamax", "rmsprop"]
-	n_epochs = np.arange(10,1060, 50)
-	n_batches = np.arange(1, 110, 10)
+	n_epochs = np.arange(10,1020, 100)
+	n_batches = np.arange(1, 110, 20)
 	n_neurons = [4,8,16,32,64]
 
 	min_error = 100
@@ -84,9 +84,11 @@ def main(iteration):
 						params["n_batch"] = n_batch
 						params["n_neuron"] = n_neuron
 						params["n_epoch"] = n_epoch
+						print("SMAPE for lstm tunings {:.2f}".format(error))
+						print(params)
+						path = "results/tuning_results.csv"
+						with open(path, 'w') as file:
+							for key in params.keys():
+								file.write("%s,%s\n"%(key,params[key]))
 	end = time.perf_counter()
 	print("Time wasted on NN tuning: {:.2f}m".format((end-start)/60))
-	path = "results/tuning_results.csv"
-	with open(path, 'w') as file:
-		for key in params.keys():
-			file.write("%s,%s\n"%(key,params[key]))

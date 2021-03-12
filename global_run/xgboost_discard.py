@@ -41,7 +41,7 @@ def is_enough(data):
 	# print(number_of_points)
 	return number_of_points
 
-def plot_save(predictions, actual, bkp, name):
+def plot_save(predictions, actual, bkp, name, setback):
 	plt.plot(actual, label = "Expected", color = "black")
 	plt.plot(predictions, label = "Predicted", color = "red")
 	plt.legend()
@@ -56,7 +56,8 @@ def plot_save(predictions, actual, bkp, name):
 	for i in bkp.unique()[1:]:
 		bkps.append(np.where(bkp == i)[0][0])
 	#     print(bkps)
-	plt.vlines(x = bkps, ymin = min(actual), ymax = max(actual), 
+	plot_bkps = [i-setback for i in bkps if i-setback>0]
+	plt.vlines(x = plot_bkps, ymin = min(actual), ymax = max(actual), 
 		linestyles = "dashed", color = "deepskyblue", label = "Breakpoints")
 	plt.legend()
 	image_path = name+"_breakpoints.png"
@@ -64,7 +65,7 @@ def plot_save(predictions, actual, bkp, name):
 	plt.clf()
 	bkp_path = name+"_breakpoints.txt"
 	with open(bkp_path, 'w') as file:
-		file.write(json.dumps("".join([str(j) for j in bkps])))
+		file.write(json.dumps(",".join([str(j) for j in bkps])))
 
 def main(iteration, name):
 
@@ -79,6 +80,7 @@ def main(iteration, name):
 	#70/30 train/test split
 	split = int(0.7*len(data))
 	train, test = data[:split], data[split:]
+	setback = len(train)
 
 	#get breakpoints for train set
 	history = functions.ada_preprocessing(train)
@@ -127,7 +129,7 @@ def main(iteration, name):
 	error = smape(np.asarray(predictions), np.asarray(ground_truth))
 	smape_dict[name] = error
 	# print("SMAPE: {:.4f}".format(error))
-	plot_save(predictions, ground_truth, bkp, "results/xgboost/discard/"+name)
+	plot_save(predictions, ground_truth, bkp, "results/xgboost/discard/"+name, setback)
 
 
 	dict_path = "results/xgboost/discard/errors/error"+str(iteration)+name+".txt"
