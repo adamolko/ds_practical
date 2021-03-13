@@ -9,7 +9,7 @@ if __name__ == '__main__':
 	processes = []
 	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
-	for iteration in range(1,4):
+	for iteration in range(4,6):
 		print("iteration ", str(iteration))
 		for name in list_of_names:
 			p = multiprocessing.Process(target = xgboost_retrain.main, args = (iteration, name,))
