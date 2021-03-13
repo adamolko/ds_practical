@@ -13,10 +13,10 @@ import xgboost_discard
 
 if __name__ == '__main__':
 	processes = []
-	list_of_functions = [baseline.main, xgboost_retrain.main, xgboost_redefine.main, xgboost_discard.main]
+	list_of_functions = [baseline.main, xgboost_redefine.main, xgboost_discard.main]
 	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
-	for iteration in range(1,11):
+	for iteration in range(4,6):
 		print("iteration ", str(iteration))
 		for fun in list_of_functions:
 			for name in list_of_names:

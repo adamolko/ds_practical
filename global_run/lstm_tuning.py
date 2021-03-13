@@ -79,7 +79,7 @@ def main(iteration):
 					#                 print("Time wasted: {:.2f}h".format((end-start)/3600))
 					error = smape(np.asarray(predictions), np.asarray(y_test))
 					if error<min_error:
-						min_error
+						min_error= error
 						params["optimizer"] = optimizer
 						params["n_batch"] = n_batch
 						params["n_neuron"] = n_neuron

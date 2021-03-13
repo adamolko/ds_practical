@@ -89,7 +89,7 @@ def main(iteration, name):
 	# plt.show()
 
 	#saving the dictionary containing errors
-	dict_path = "results/xgboost/retrain/errors/error"+str(iteration)+".txt"
+	dict_path = "results/xgboost/retrain/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
 		for key in smape_dict.keys():
 			file.write("%s,%s\n"%(key,smape_dict[key]))
