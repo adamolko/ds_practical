@@ -27,24 +27,6 @@ def manual_preprocessing(values):
 	df = pd.DataFrame(columns=columns, data=[data])
 	return df
 
-def forecast_preprocessing(train, test):
-	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
-	test_X, test_y = test.iloc[:,1:], test.iloc[:,0]
-
-	#separate both train and test sets into inputs and auxiliary variables
-	train_X_input = train_X.loc[:,"t-1":"t-5"]
-	test_X_input = test_X.loc[:,"t-1":"t-5"]
-
-	#now also need to reshape X_input and X_aux
-	X_arrays = np.asarray(train_X_input)
-	train_X_input = np.hstack(X_arrays).reshape(train_X_input.shape[0], 1, train_X_input.shape[1])
-
-	#need to do the same for test set
-	X_arrays = np.asarray(test_X_input)
-	test_X_input = np.hstack(X_arrays).reshape(test_X_input.shape[0], 1, test_X_input.shape[1])
-
-	return train_X_input, test_X_input, train_y
-
 
 def fit_lstm(train):
 	# reshape training into [samples, timesteps, features]
@@ -81,12 +63,11 @@ def main(iteration, name):
 	for i in range(0, len(test)):
 		#get breakpoints for train dataset
 		history = functions.ada_preprocessing(train)
+		history = history.loc[:, "t":"t-5"]
 
-		history.drop(["transition", "steps_to_bkp", "steps_since_bkp"], axis = 1, inplace = True)
-
-		#get the dataframe for new test observation
+		#get test observation into necessary shape
 		train.append(test[i])
-		test_row = manual_preprocessing(train, history.tail(1))
+		test_row = manual_preprocessing(train)
 
 		X = test_row.loc[:,"t-1":"t-5"]
 		X_arrays = np.asarray(X)

@@ -89,7 +89,6 @@ def main(iteration, name):
 	last_num_concepts = max(list(history["concept"]))
 
 	predictions = []
-	ground_truth = []
 	points = 0
 	bkp = None
 	for i in range(len(test)):
@@ -98,8 +97,6 @@ def main(iteration, name):
 
 		#pass all the values available in series up to and including the new test point
 		test_df = manual_preprocessing(train)
-
-		ground_truth.append(train[-1])
 
 		#training data = history
 		prediction = xgboost_forecast(history.loc[:,"t":"t-5"], test_df.loc[:,"t-1":"t-5"])
@@ -126,7 +123,7 @@ def main(iteration, name):
 	end = time.perf_counter()
 	print("Time wasted on xgboost with discard: {:.2f}m".format((end-start)/60))
 
-	error = smape(np.asarray(predictions), np.asarray(ground_truth))
+	error = smape(np.asarray(predictions), np.asarray(test))
 	smape_dict[name] = error
 	# print("SMAPE: {:.4f}".format(error))
 	#plot_save(predictions, ground_truth, bkp, "results/xgboost/discard/"+name, setback)
