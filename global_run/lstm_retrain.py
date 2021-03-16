@@ -51,7 +51,11 @@ def fit_lstm(train):
 
 
 def main(iteration, name):
+	print("lstm with retrain is running")
 	smape_dict = {}
+
+	#loading the data
+	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
 	#70/30 train/test split
 	split = int(0.7*len(data))
@@ -59,12 +63,16 @@ def main(iteration, name):
 
 	predictions = []
 
+	# train the model outside the for-loop
+
+	history = functions.ada_preprocessing(train)
+	history = history.loc[:, "t":"t-5"]
+
+	model = fit_lstm(history)	
+
 	start = time.perf_counter()
 	for i in range(0, len(test)):
-		#get breakpoints for train dataset
-		history = functions.ada_preprocessing(train)
-		history = history.loc[:, "t":"t-5"]
-
+		print("lstm with retrain is alive")
 		#get test observation into necessary shape
 		train.append(test[i])
 		test_row = manual_preprocessing(train)
@@ -73,11 +81,13 @@ def main(iteration, name):
 		X_arrays = np.asarray(X)
 		test_X = np.hstack(X_arrays).reshape(X.shape[0], 1, X.shape[1])
 
-		model = fit_lstm(history)
-
 		#get predictions for new test observation
 		prediction = model.predict(test_X)
 		predictions.append(prediction)
+
+		#get breakpoints for train dataset
+		history = functions.ada_preprocessing(train)
+		history = history.loc[:, "t":"t-5"]
 
 
 	end = time.perf_counter()

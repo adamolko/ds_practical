@@ -83,7 +83,10 @@ def is_enough(data):
 	return number_of_points
 
 def main(iteration, name):
+	print("lstm with discard is running")
 	smape_dict = {}
+	# load the data
+	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
 	#70/30 train/test split
 	split = int(0.7*len(data))
@@ -104,7 +107,7 @@ def main(iteration, name):
 	start = time.perf_counter()
 
 	for i in range(0, len(test)):
-
+		print("lstm with discard is alive")
 		#get test observation into necessary shape
 		train.append(test[i])
 		test_row = manual_preprocessing(train)
