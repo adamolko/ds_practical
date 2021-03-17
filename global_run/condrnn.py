@@ -22,7 +22,7 @@ def smape(predictions, actual):
 
 def plot_save(predictions, actual, bkp, name, setback):
 	plt.plot(actual, label = "Expected", color = "black")
-	plt.plot(predictions, label = "Predicted", color = "red")
+	plt.plot(predictions.reshape(predictions.shape[0], 1), label = "Predicted", color = "red")
 	plt.legend()
 
 	#saving the plots
@@ -87,7 +87,7 @@ def fit_cond_rnn(X_input, X_aux, train_y):
 	cond1 = Input(shape = (X_aux.shape[1]), dtype = tf.float32)
 
 	#building model steps
-	A = ConditionalRNN(4, cell='LSTM')([inputs, cond1])
+	A = ConditionalRNN(64, cell='LSTM')([inputs, cond1])
 	out = Dense(1)(A)
 	model = Model(inputs=[inputs, cond1], outputs=out)
 	model.compile(loss = "mean_squared_error", optimizer = "adam")
@@ -95,7 +95,7 @@ def fit_cond_rnn(X_input, X_aux, train_y):
 	es = tf.keras.callbacks.EarlyStopping(monitor='loss',  patience=5, verbose=0, mode='auto')
 
 	#fitting the model
-	model.fit([X_input, X_aux], train_y, epochs = 50, batch_size = 1, callbacks = [es], verbose = 1, shuffle = False)
+	model.fit([X_input, X_aux], train_y, epochs = 710, batch_size = 80, callbacks = [es], verbose = 1, shuffle = False)
 
 	return model
 
@@ -123,6 +123,7 @@ def main(iteration, name):
 	split = int(0.7*len(data))
 	train, test = data[:split], data[split:]
 	setback = len(train)
+	bkp = None
 
 	predictions = []
 
@@ -151,7 +152,8 @@ def main(iteration, name):
 		print("cond_rnn is alive")
 		#get breakpoints for train dataset
 		history = functions.ada_preprocessing(train)
-
+		if i == len(test)-1:
+			bkp = history["concept"]
 		history.drop(["transition", "steps_to_bkp", "steps_since_bkp"], axis = 1, inplace = True)
 
 		#get the dataframe for new test observation
@@ -174,7 +176,7 @@ def main(iteration, name):
 
 	error = smape(np.asarray(predictions), np.asarray(test))
 	smape_dict[name] = error
-	plot_save(predictions, ground_truth, bkp, "results/cond_rnn/"+name, setback)
+	plot_save(np.asarray(predictions), test, bkp, "results/cond_rnn/"+name, setback)
     
 	dict_path = "results/cond_rnn/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
