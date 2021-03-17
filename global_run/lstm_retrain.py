@@ -46,7 +46,7 @@ def fit_lstm(train):
 	es = tf.keras.callbacks.EarlyStopping(monitor='loss',  patience=5, verbose=0, mode='auto')
 
 	# fit network
-	model.fit(X, y, epochs = 710, batch_size = 80, verbose = 0, callbacks=[es], shuffle = False)
+	model.fit(X, y, epochs = 710, batch_size = 80, verbose = 1, callbacks=[es], shuffle = False)
 
 	return model
 

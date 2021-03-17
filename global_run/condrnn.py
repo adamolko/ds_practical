@@ -176,7 +176,7 @@ def main(iteration, name):
 
 	error = smape(np.asarray(predictions), np.asarray(test))
 	smape_dict[name] = error
-	plot_save(np.asarray(predictions), test, bkp, "results/cond_rnn/"+name, setback)
+	#plot_save(np.asarray(predictions), test, bkp, "results/cond_rnn/"+name, setback)
     
 	dict_path = "results/cond_rnn/errors/error"+str(iteration)+name+".txt"
 	with open(dict_path, 'w') as file:
