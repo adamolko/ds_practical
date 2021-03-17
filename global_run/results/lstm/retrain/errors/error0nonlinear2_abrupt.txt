@@ -1,1 +1,1 @@
-nonlinear2_abrupt,0.5468043062333016
+nonlinear2_abrupt,0.5492675475156148

@@ -134,7 +134,7 @@ def main(iteration, name):
 	history.drop(["transition", "steps_to_bkp", "steps_since_bkp"], axis = 1, inplace = True)
 
 	#get the dataframe for new test observation
-	train.append(test[i])
+	train.append(test[0])
 	test_row = manual_preprocessing(train, history.tail(1))
 
 	#change train and test into form appropriate for CondRNN

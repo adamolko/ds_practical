@@ -21,7 +21,7 @@ def smape(predictions, actual):
 
 def plot_save(predictions, actual, bkp, name, setback):
 	plt.plot(actual, label = "Expected", color = "black")
-	plt.plot(predictions, label = "Predicted", color = "red")
+	plt.plot(predictions.reshape(predictions.shape[0],1), label = "Predicted", color = "red")
 	plt.legend()
 
 	#saving the plots
@@ -92,6 +92,7 @@ def main(iteration, name):
 	#70/30 train/test split
 	split = int(0.7*len(data))
 	train, test = data[:split], data[split:]
+	setback = len(train)
 
 	#get breakpoints for train set
 	history = functions.ada_preprocessing(train)
@@ -152,7 +153,7 @@ def main(iteration, name):
 	smape_dict[name] = error
 	print("SMAPE: {:.4f}".format(error))
 
-	plot_save(predictions, test, bkp, "results/lstm/discard/"+name, setback)
+	plot_save(np.asarray(predictions), test, bkp, "results/lstm/discard/"+name, setback)
 
 	#saving the dictionary containing errors
 	dict_path = "results/lstm/discard/errors/error"+str(iteration)+name+".txt"
