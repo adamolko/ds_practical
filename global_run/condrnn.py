@@ -128,9 +128,26 @@ def main(iteration, name):
 
 	start = time.perf_counter()
 
+	# need to do first iteration outside the loop to avoid retraining the model
+	history = functions.ada_preprocessing(train)
+
+	history.drop(["transition", "steps_to_bkp", "steps_since_bkp"], axis = 1, inplace = True)
+
+	#get the dataframe for new test observation
+	train.append(test[i])
+	test_row = manual_preprocessing(train, history.tail(1))
+
+	#change train and test into form appropriate for CondRNN
+	train_X_input, train_X_aux, test_X_input, test_X_aux, train_y, test_y = forecast_preprocessing(history, test_row)
+
+	model = fit_cond_rnn(train_X_input, train_X_aux, train_y)
+
+	#get predictions for new test observation
+	prediction = model.predict([test_X_input, test_X_aux])
+	predictions.append(prediction)
 
 	#we've got the first prediction, so now start from 1
-	for i in range(0, len(test)):
+	for i in range(1, len(test)):
 		print("cond_rnn is alive")
 		#get breakpoints for train dataset
 		history = functions.ada_preprocessing(train)
@@ -143,8 +160,6 @@ def main(iteration, name):
 
 		#change train and test into form appropriate for CondRNN
 		train_X_input, train_X_aux, test_X_input, test_X_aux, train_y, test_y = forecast_preprocessing(history, test_row)
-
-		model = fit_cond_rnn(train_X_input, train_X_aux, train_y)
 
 		#get predictions for new test observation
 		prediction = model.predict([test_X_input, test_X_aux])

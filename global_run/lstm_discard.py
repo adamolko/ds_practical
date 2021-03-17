@@ -133,12 +133,12 @@ def main(iteration, name):
 		if new_num_concepts>last_num_concepts:
 			#if we have more than 20 points for new concept, keep them and drop the rest of the data
 			points = is_enough(history)
-		if points>=20:
-			history = history.tail(points)
-			last_num_concepts = new_num_concepts
-			points = 0
-			# retrain the model
-			model = fit_lstm(history.loc["t":"t-5"])
+			if points>=20:
+				history = history.tail(points)
+				last_num_concepts = new_num_concepts
+				points = 0
+				# retrain the model
+				model = fit_lstm(history.loc[:,"t":"t-5"])
 		#otherwise just keep using the same dataset
 
 
