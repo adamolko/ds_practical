@@ -10,7 +10,7 @@ import condrnn
 if __name__ == '__main__':
 	iteration = 0
 	processes = []
-	list_of_functions = [lstm_retrain.main, lstm_discard.main, condrnn.main]
+	list_of_functions = [lstm_retrain.main, lstm_discard.main]
 	list_of_names = ["linear1_abrupt", "linear2_abrupt", "linear3_abrupt", "nonlinear1_abrupt", "nonlinear2_abrupt", "nonlinear3_abrupt"]
 
 	for fun in list_of_functions:

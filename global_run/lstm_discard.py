@@ -11,6 +11,7 @@ import time
 import tensorflow as tf
 import json
 import csv
+import functions
 
 def smape(predictions, actual):
 	difference = np.abs(predictions-actual)

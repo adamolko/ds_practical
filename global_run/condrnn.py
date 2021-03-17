@@ -95,7 +95,7 @@ def fit_cond_rnn(X_input, X_aux, train_y):
 	es = tf.keras.callbacks.EarlyStopping(monitor='loss',  patience=5, verbose=0, mode='auto')
 
 	#fitting the model
-	model.fit([X_input, X_aux], train_y, epochs = 50, batch_size = 1, callbacks = [es], verbose = 0, shuffle = False)
+	model.fit([X_input, X_aux], train_y, epochs = 50, batch_size = 1, callbacks = [es], verbose = 1, shuffle = False)
 
 	return model
 
@@ -116,7 +116,7 @@ def preprocessing(data):
 
 def main(iteration, name):
 	smape_dict = {}
-
+	print("condrnn is running")
 	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
 	#70/30 train/test split
@@ -161,7 +161,7 @@ def main(iteration, name):
 	smape_dict[name] = error
 	plot_save(predictions, ground_truth, bkp, "results/cond_rnn/"+name, setback)
     
-dict_path = "results/cond_rnn/errors/error"+str(iteration)+name+".txt"
-with open(dict_path, 'w') as file:
-	for key in smape_dict.keys():
-		file.write("%s,%s\n"%(key,smape_dict[key]))
+	dict_path = "results/cond_rnn/errors/error"+str(iteration)+name+".txt"
+	with open(dict_path, 'w') as file:
+		for key in smape_dict.keys():
+			file.write("%s,%s\n"%(key,smape_dict[key]))
