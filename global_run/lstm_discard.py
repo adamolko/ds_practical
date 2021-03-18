@@ -135,6 +135,7 @@ def main(iteration, name):
 			#if we have more than 20 points for new concept, keep them and drop the rest of the data
 			points = is_enough(history)
 			if points>=20:
+				print("found {} points from new concept".format(points))
 				history = history.tail(points)
 				last_num_concepts = new_num_concepts
 				points = 0
