@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import time
 import tensorflow as tf
-import kerastuner as kt
 
 def smape(predictions, actual):
 	difference = np.abs(predictions-actual)
