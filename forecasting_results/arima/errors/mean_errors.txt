@@ -1,0 +1,6 @@
+linear1_abrupt,0.0535
+linear2_abrupt,0.0457
+linear3_abrupt,0.1283
+nonlinear1_abrupt,0.6383
+nonlinear2_abrupt,0.1106
+nonlinear3_abrupt,0.293

@@ -22,8 +22,6 @@ def baseline_predict(train, test):
     return predictions
 
 def main(iteration, name):
-    print("i'm doing baseline bitch")
-
     smape_dict = {}
 
     data = pd.read_csv("data/"+name, usecols = [iteration])

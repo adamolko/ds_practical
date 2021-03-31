@@ -1,4 +1,0 @@
-optimizer,adam
-n_batch,101
-n_neuron,32
-n_epoch,110
