@@ -4,6 +4,8 @@ Data Science Practical project from Siemens on Detecting Concept Drift in Small 
 ## Task
 Explicit detection of concept drifts in small time series data, with subsequent incorporation into forecasting routines.
 
+## Artificial Time Series
+
 ## Drift detection
 
 ## Forecasting
