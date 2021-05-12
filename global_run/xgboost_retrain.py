@@ -46,7 +46,6 @@ def walk_forward_validation(train, test):
 
 def xgboost_forecast(train, test_X):
 	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
-	print("xgboost with retrain is alive")
 	model = XGBRegressor(objective = 'reg:squarederror', n_estimators = 100, random_state = 40)
 	model.fit(train_X, train_y)
 	yhat = model.predict(test_X)
@@ -73,7 +72,7 @@ def main(iteration, name):
 	start = time.perf_counter()
 	error, y, yhat = walk_forward_validation(train, test)
 	end = time.perf_counter()
-	print("Time wasted on xgboost with retrain: {:.2f}s".format((end-start)))
+	print("Time spent on xgboost with retrain: {:.2f}s".format((end-start)))
 
 	smape_dict[name] = error
 	# print("SMAPE: {:.4f}".format(error))

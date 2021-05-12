@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     for fun in list_of_functions:
         for name in list_of_names:
-            p = multiprocessing.Process(target=fun, args=(iteration,name, ))
+            p = multiprocessing.Process(target=fun, args=(iteration, name, ))
             processes.append(p)
             p.start()
     

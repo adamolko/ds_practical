@@ -116,7 +116,6 @@ def preprocessing(data):
 
 def main(iteration, name):
 	smape_dict = {}
-	print("condrnn is running")
 	data = pd.read_csv("data/"+name, usecols = [iteration]).iloc[:,0].to_list()
 
 	#70/30 train/test split
@@ -149,7 +148,6 @@ def main(iteration, name):
 
 	#we've got the first prediction, so now start from 1
 	for i in range(1, len(test)):
-		print("cond_rnn is alive")
 		#get breakpoints for train dataset
 		history = functions.ada_preprocessing(train)
 		if i == len(test)-1:
@@ -169,7 +167,7 @@ def main(iteration, name):
 
 
 	end = time.perf_counter()
-	print("Time wasted on cond_rnn: {:.2f}h".format((end-start)/3600))
+	print("Time spent on cond_rnn: {:.2f}h".format((end-start)/3600))
 
 	#inverting predictions to original scale
 	#     predictions = scaler.inverse_transform(np.asarray(predictions).reshape([-1,1]))

@@ -16,7 +16,6 @@ def smape(predictions, actual):
 	return error
 
 def xgboost_forecast(train, test_X):
-	print("xgboost with discard is alive")
 	train_X, train_y = train.iloc[:,1:], train.iloc[:,0]
 
 	model = XGBRegressor(objective = 'reg:squarederror', n_estimators = 100, random_state = 40)
@@ -71,7 +70,7 @@ def main(iteration, name):
 
 	smape_dict = {}
 
-	print("hey there, i'm running xgboost with discard")
+	print("xgboost with discard is running")
 	start = time.perf_counter()
 
 	#loading the data
@@ -121,7 +120,7 @@ def main(iteration, name):
 			#otherwise just keep using the same dataset
 
 	end = time.perf_counter()
-	print("Time wasted on xgboost with discard: {:.2f}m".format((end-start)/60))
+	print("Time spent on xgboost with discard: {:.2f}m".format((end-start)/60))
 
 	error = smape(np.asarray(predictions), np.asarray(test))
 	smape_dict[name] = error

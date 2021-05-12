@@ -128,7 +128,7 @@ def main(iteration, name):
 
 
 	end = time.perf_counter()
-	print("Time wasted on xgboost with retrain: {:.2f}m".format((end-start)/60))
+	print("Time spent on xgboost with retrain: {:.2f}m".format((end-start)/60))
 
 	error = smape(np.asarray(predictions), np.asarray(ground_truth))
 	smape_dict[name] = error

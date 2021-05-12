@@ -41,8 +41,6 @@ def fit_lstm(train, n_neuron, n_epoch, n_batch, optimizer):
 
 
 def main(iteration):
-	print("hey i'm tuning lstm")
-
 	data = pd.read_csv("data/linear1_abrupt", usecols = [iteration]).iloc[:,0].to_list()
 	#note: i only use this to get the lagged values, the concepts and others are dropped subsequently
 	data = functions.ada_preprocessing(data)
@@ -70,7 +68,6 @@ def main(iteration):
 			for n_neuron in n_neurons:
 				for n_epoch in n_epochs:
 					#fit the model just once
-					print("lstm tuning is alive")
 					model = fit_lstm(train, n_neuron, n_epoch, n_batch, optimizer)
 
 					#get predictions for new test observation
@@ -90,4 +87,4 @@ def main(iteration):
 							for key in params.keys():
 								file.write("%s,%s\n"%(key,params[key]))
 	end = time.perf_counter()
-	print("Time wasted on NN tuning: {:.2f}m".format((end-start)/60))
+	print("Time spent on NN tuning: {:.2f}m".format((end-start)/60))

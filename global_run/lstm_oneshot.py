@@ -92,7 +92,7 @@ def main(iteration, name):
 
 
 	end = time.perf_counter()
-	print("Time wasted: {:.2f}h".format((end-start)/3600))
+	print("Time spent: {:.2f}h".format((end-start)/3600))
 
 	#inverting predictions to original scale
 	#     predictions = scaler.inverse_transform(np.asarray(predictions).reshape([-1,1]))

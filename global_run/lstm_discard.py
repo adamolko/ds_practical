@@ -80,7 +80,6 @@ def fit_lstm(train):
 def is_enough(data):
 	new_concept = max(list(data["concept"]))
 	number_of_points = sum(data["concept"]==new_concept)
-	# print(number_of_points)
 	return number_of_points
 
 def main(iteration, name):
@@ -109,7 +108,6 @@ def main(iteration, name):
 	start = time.perf_counter()
 
 	for i in range(0, len(test)):
-		print("lstm with discard is alive")
 		#get test observation into necessary shape
 		train.append(test[i])
 		test_row = manual_preprocessing(train)
@@ -145,7 +143,7 @@ def main(iteration, name):
 
 
 	end = time.perf_counter()
-	print("Time wasted: {:.2f}h".format((end-start)/3600))
+	print("Time spent: {:.2f}h".format((end-start)/3600))
 
 	#inverting predictions to original scale
 	#     predictions = scaler.inverse_transform(np.asarray(predictions).reshape([-1,1]))
