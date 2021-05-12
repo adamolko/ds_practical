@@ -379,7 +379,6 @@ def preprocess_timeseries(timeseries, windowsize=10):
                                       'var','kurt','skew', 'osc', 'mi_lag1', 'mi_lag2', 'mi_lag3']] = stand
     return series
 def bkps_stats(bkps_signal, signal, size_concepts, obs_amount_beyond_window, windowsize_preproc = 10):
-    #TODO: test indices for bkp, since it gives out a breakpoint for 790?
     bkps = bkps_signal.copy()
     bkps = bkps[:-1]
     total_number_bkps = len(bkps)
@@ -727,7 +726,7 @@ def stability_analysis_long_term(penalization, iterations, data_creation_functio
      return standard_deviations 
        
 @ray.remote             
-def stability_analysis_short_term(penalization, iterations, data_creation_function, size_concepts , windowsize_preprocessing = 10):              
+def stability_analysis_short_term(penalization, iterations, dataset, size_concepts , windowsize_preprocessing = 10):              
      # data_creation_function = create_simdata.linear1_abrupt
      # penalization = 12
      # iterations = 1
@@ -740,7 +739,15 @@ def stability_analysis_short_term(penalization, iterations, data_creation_functi
      delay = []
      for i in range(0, iterations, 1):
           print("iteration: ", i)
-          data = data_creation_function()
+          
+          #data = data_creation_function()
+          #with open("data_final_detection/" + dataset + "_"+ str(i) +".data",  'rb') as filehandle:
+           # data = pickle.load(filehandle)
+            
+          with open("C://Users/Daniel/Documents/Git_Practical/data_final_detection/" + dataset + "_"+ str(i) +".data",  'rb') as filehandle:
+            data = pickle.load(filehandle)
+          
+          
           indices_bkp =  []
           first_bkp = True
           for j in range(int(size_concepts*3), (size_concepts*4), 1):
@@ -768,6 +775,9 @@ def stability_analysis_short_term(penalization, iterations, data_creation_functi
           if len(indices_bkp)>1:
               bkp_sd = stdev(indices_bkp)
               standard_deviations.append(bkp_sd)
+          if len(indices_bkp)==1:
+              standard_deviations.append(0) 
+              
           
      return delay, standard_deviations 
                   
