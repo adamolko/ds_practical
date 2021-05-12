@@ -5,6 +5,7 @@ Data Science Practical project from Siemens on Detecting Concept Drift in Small 
 Explicit detection of concept drifts in small time series data, with subsequent incorporation into forecasting routines.
 
 ## Artificial Time Series
+Random time series according to those models described in the Report can be generated through the functions in [create_simdata.py](create_simdata.py). Additionally to sudden drifts, there is also the option to generate data with incremental drifts.
 
 ## Drift detection
 
